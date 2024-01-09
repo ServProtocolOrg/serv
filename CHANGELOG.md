@@ -38,11 +38,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 - (test) [#51](https://github.com/EscanBE/evermint/pull/51) Set chain-id into client.toml during init testnet
-- (ante) [#63](https://github.com/EscanBE/evermint/pull/63) Disable more authz msgs + refactor optimize AuthzLimiterDecorator (backport #62)
+- (ante) [#65](https://github.com/EscanBE/evermint/pull/65) Add EvmTx sender override protection in ante and correct changelog (backport #64)
 
 ### Bug Fixes
 
 - (ante) [#60](https://github.com/EscanBE/evermint/pull/60) Prevent panic when building error message of fee which overflow int64 (backport #59)
+
+### State Machine Breaking
+
+- (ante) [#63](https://github.com/EscanBE/evermint/pull/63) Disable more authz msgs + refactor optimize AuthzLimiterDecorator (backport #62)
 
 # Evermint changelog
 
