@@ -11,8 +11,6 @@ import (
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-
-	claimstypes "github.com/EscanBE/evermint/v12/x/claims/types"
 )
 
 // BankKeeper defines the banking keeper that must be fulfilled when
@@ -36,11 +34,6 @@ type TransferKeeper interface {
 // ChannelKeeper defines the expected IBC channel keeper.
 type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
-}
-
-// ClaimsKeeper defines the expected claims keeper.
-type ClaimsKeeper interface {
-	GetParams(ctx sdk.Context) claimstypes.Params
 }
 
 type (
