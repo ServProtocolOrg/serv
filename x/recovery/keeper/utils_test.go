@@ -6,7 +6,6 @@ import (
 
 	"github.com/EscanBE/evermint/v12/app"
 	ibctesting "github.com/EscanBE/evermint/v12/ibc/testing"
-	claimstypes "github.com/EscanBE/evermint/v12/x/claims/types"
 	inflationtypes "github.com/EscanBE/evermint/v12/x/inflation/types"
 	"github.com/EscanBE/evermint/v12/x/recovery/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -94,11 +93,11 @@ func (suite *IBCTestingSuite) SetupTest() {
 	err = suite.IBCCosmosChain.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.IBCCosmosChain.GetContext(), minttypes.ModuleName, suite.IBCCosmosChain.SenderAccount.GetAddress(), stkCoin)
 	suite.Require().NoError(err)
 
-	claimparams := claimstypes.DefaultParams()
-	claimparams.AirdropStartTime = suite.EvermintChain.GetContext().BlockTime()
-	claimparams.EnableClaims = true
-	err = suite.EvermintChain.App.(*app.Evermint).ClaimsKeeper.SetParams(suite.EvermintChain.GetContext(), claimparams)
-	suite.Require().NoError(err)
+	//claimparams := claimstypes.DefaultParams()
+	//claimparams.AirdropStartTime = suite.EvermintChain.GetContext().BlockTime()
+	//claimparams.EnableClaims = true
+	//err = suite.EvermintChain.App.(*app.Evermint).ClaimsKeeper.SetParams(suite.EvermintChain.GetContext(), claimparams)
+	//suite.Require().NoError(err)
 
 	params := types.DefaultParams()
 	params.EnableRecovery = true

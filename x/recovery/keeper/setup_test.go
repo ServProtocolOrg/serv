@@ -20,7 +20,6 @@ import (
 	ibcgotesting "github.com/cosmos/ibc-go/v7/testing"
 
 	"github.com/EscanBE/evermint/v12/app"
-	claimstypes "github.com/EscanBE/evermint/v12/x/claims/types"
 	"github.com/EscanBE/evermint/v12/x/recovery/types"
 )
 
@@ -54,10 +53,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, suite.app.RecoveryKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	claimsParams := claimstypes.DefaultParams()
-	claimsParams.AirdropStartTime = suite.ctx.BlockTime()
-	err := suite.app.ClaimsKeeper.SetParams(suite.ctx, claimsParams)
-	suite.Require().NoError(err)
+	//claimsParams := claimstypes.DefaultParams()
+	//claimsParams.AirdropStartTime = suite.ctx.BlockTime()
+	//err := suite.app.ClaimsKeeper.SetParams(suite.ctx, claimsParams)
+	//suite.Require().NoError(err)
 
 	stakingParams := suite.app.StakingKeeper.GetParams(suite.ctx)
 	stakingParams.BondDenom = constants.BaseDenom
