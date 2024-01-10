@@ -68,7 +68,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#25](https://github.com/EscanBE/evermint/pull/25) Enable [EIP-3855](https://eips.ethereum.org/EIPS/eip-3855) by default
 - (deps) [#36](https://github.com/EscanBE/evermint/pull/36) Bump CometBFT to v0.37.4
 - (evm) [#39](https://github.com/EscanBE/evermint/pull/39) Consume all gas upon `ApplyTransaction` failure without VM error
-
+- (claim)[#71](https://github.com/EscanBE/evermint/pull/73) `Remove x/claim` module  
 # Evermint changelog
 
 #### Note: Evermint was born for development and research purpose so maintainers do not support migration for new upgrade/breaking changes. 
