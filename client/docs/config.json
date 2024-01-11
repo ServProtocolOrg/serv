@@ -7,14 +7,6 @@
   },
   "apis": [
     {
-      "url": "./tmp-swagger-gen/evmos/claims/v1/query.swagger.json",
-      "operationIds": {
-        "rename": {
-          "Params": "ClaimsParams"
-        }
-      }
-    },
-    {
       "url": "./tmp-swagger-gen/evmos/epochs/v1/query.swagger.json"
     },
     {
