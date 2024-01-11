@@ -48,6 +48,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (flags) [#22](https://github.com/EscanBE/evermint/pull/22) Change default gas adjustment to 1.2 and update default value of some flags
 - (fee) [#37](https://github.com/EscanBE/evermint/pull/37) Reject cosmos txs that fee denom is not evm denom
 - (test) [#46](https://github.com/EscanBE/evermint/pull/46) Use static mnemonic for scripts init nodes and `evmd testnet init-files`
+- (ante) [#64](https://github.com/EscanBE/evermint/pull/64) Add EvmTx sender override protection in ante and correct changelog
 
 ### Bug Fixes
 
@@ -57,6 +58,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (fee) [#30](https://github.com/EscanBE/evermint/pull/30) Handle deduct zero fee of zero fee tx when x/feemarket disabled and min gas price is zero
 - (rpc+store) [#32](https://github.com/EscanBE/evermint/pull/32) Fix some concurrency issue in rpc and correct iavl tag
 - (test) [#50](https://github.com/EscanBE/evermint/pull/50) Set chain-id into client.toml during init testnet
+- (ante) [#59](https://github.com/EscanBE/evermint/pull/59) Prevent panic when building error message of fee which overflow int64
+- (swagger) [#66](https://github.com/EscanBE/evermint/pull/66) Correct script gen swagger after switched to use vanilla Cosmos-SDK
 
 ### Client Breaking
 
@@ -68,7 +71,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#25](https://github.com/EscanBE/evermint/pull/25) Enable [EIP-3855](https://eips.ethereum.org/EIPS/eip-3855) by default
 - (deps) [#36](https://github.com/EscanBE/evermint/pull/36) Bump CometBFT to v0.37.4
 - (evm) [#39](https://github.com/EscanBE/evermint/pull/39) Consume all gas upon `ApplyTransaction` failure without VM error
-- (claim)[#71](https://github.com/EscanBE/evermint/pull/73) `Remove x/claim` module  
+- (inflation) [#54](https://github.com/EscanBE/evermint/pull/54) Replace `x/inflation` module by Cosmos-SDK `x/mint` module
+- (deps) [#57](https://github.com/EscanBE/evermint/pull/57) Use vanilla Cosmos-SDK v0.47.5
+- (deps) [#58](https://github.com/EscanBE/evermint/pull/58) Bump Cosmos-SDK from v0.47.5 to v0.47.7
+- (ante) [#62](https://github.com/EscanBE/evermint/pull/62) Disable more authz msgs + refactor optimize AuthzLimiterDecorator
+- (incentives) [#67](https://github.com/EscanBE/evermint/pull/67) Remove `x/incentives` module
+- (revenue) [#68](https://github.com/EscanBE/evermint/pull/68) Remove `x/revenue` module
+- (recovery) [#69](https://github.com/EscanBE/evermint/pull/69) Remove `x/recovery` module
+- (epochs) [#70](https://github.com/EscanBE/evermint/pull/70) Remove `x/epochs` module
+- (claim) [#71](https://github.com/EscanBE/evermint/pull/73) Remove `x/claim` module
+
 # Evermint changelog
 
 #### Note: Evermint was born for development and research purpose so maintainers do not support migration for new upgrade/breaking changes. 

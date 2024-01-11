@@ -56,12 +56,6 @@ func (k Keeper) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	// if sender == recipient, and is not from an EVM Channel recovery was executed
-	if sender.Equals(recipient) {
-		// Continue to the next IBC middleware by returning the original ACK.
-		return ack
-	}
-
 	senderAcc := k.accountKeeper.GetAccount(ctx, sender)
 
 	// return acknoledgement without conversion if sender is a module account
