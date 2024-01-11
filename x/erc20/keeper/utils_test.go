@@ -208,8 +208,6 @@ func (suite *KeeperTestSuite) SetupIBCTest() {
 	err = suite.IBCCosmosChain.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.IBCCosmosChain.GetContext(), minttypes.ModuleName, suite.IBCCosmosChain.SenderAccount.GetAddress(), stkCoin)
 	suite.Require().NoError(err)
 
-	suite.Require().NoError(err)
-
 	params := types.DefaultParams()
 	params.EnableErc20 = true
 	err = s.app.Erc20Keeper.SetParams(suite.EvermintChain.GetContext(), params)

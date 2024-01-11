@@ -202,20 +202,20 @@ func TestGetTransferAmount(t *testing.T) {
 			"10000",
 			false,
 		},
-		//{
-		//	"valid - IBCTriggerAmt",
-		//	channeltypes.Packet{
-		//		Data: transfertypes.ModuleCdc.MustMarshalJSON(
-		//			&transfertypes.FungibleTokenPacketData{
-		//				Sender:   "cosmos1qql8ag4cluz6r4dz28p3w00dnc9w8ueulg2gmc",
-		//				Receiver: marker.ReplaceAbleAddress("evm1x2w87cvt5mqjncav4lxy8yfreynn273xe08fl7"),
-		//				Amount:   types.IBCTriggerAmt,
-		//			},
-		//		),
-		//	},
-		//	types.IBCTriggerAmt,
-		//	false,
-		//},
+		{
+			"valid - any amount",
+			channeltypes.Packet{
+				Data: transfertypes.ModuleCdc.MustMarshalJSON(
+					&transfertypes.FungibleTokenPacketData{
+						Sender:   "cosmos1qql8ag4cluz6r4dz28p3w00dnc9w8ueulg2gmc",
+						Receiver: marker.ReplaceAbleAddress("evm1x2w87cvt5mqjncav4lxy8yfreynn273xe08fl7"),
+						Amount:   "1",
+					},
+				),
+			},
+			"1",
+			false,
+		},
 	}
 
 	for _, tc := range testCases {

@@ -79,7 +79,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (revenue) [#68](https://github.com/EscanBE/evermint/pull/68) Remove `x/revenue` module
 - (recovery) [#69](https://github.com/EscanBE/evermint/pull/69) Remove `x/recovery` module
 - (epochs) [#70](https://github.com/EscanBE/evermint/pull/70) Remove `x/epochs` module
-- (claim) [#71](https://github.com/EscanBE/evermint/pull/73) Remove `x/claim` module
+- (claims) [#73](https://github.com/EscanBE/evermint/pull/73) Remove `x/claims` module
 
 # Evermint changelog
 
