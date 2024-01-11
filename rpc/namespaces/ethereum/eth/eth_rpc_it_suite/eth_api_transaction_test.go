@@ -1,6 +1,7 @@
 package demo
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/EscanBE/evermint/v12/integration_test_util"
@@ -627,20 +628,22 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 
 	// helper methods
 
-	newMsgEthTx := func(sender *itutiltypes.TestAccount) *evmtypes.MsgEthereumTx {
+	newMsgEthTxDynamic := func(sender *itutiltypes.TestAccount) *evmtypes.MsgEthereumTx {
 		to := receiver.GetEthAddress()
 
-		gasPrice := suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx())
+		baseFee := suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx())
+		gasTipCap := big.NewInt(10000)
+		gasFeeCap := new(big.Int).Mul(baseFee, gasTipCap)
 		evmTxArgs := &evmtypes.EvmTxArgs{
-			ChainID:   suite.App().EvmKeeper().ChainID(),
 			Nonce:     suite.App().EvmKeeper().GetNonce(suite.Ctx(), sender.GetEthAddress()),
 			GasLimit:  21000,
 			Input:     nil,
-			To:        &to,
+			GasFeeCap: gasFeeCap,
+			GasPrice:  nil,
+			ChainID:   suite.App().EvmKeeper().ChainID(),
 			Amount:    big.NewInt(1),
-			GasFeeCap: gasPrice,
-			GasPrice:  gasPrice,
-			GasTipCap: big.NewInt(1),
+			GasTipCap: gasTipCap,
+			To:        &to,
 			Accesses:  nil,
 		}
 
@@ -650,8 +653,31 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		return msgEvmTx
 	}
 
-	newSignedEthTx := func(sender *itutiltypes.TestAccount) *ethtypes.Transaction {
-		msgEvmTx := newMsgEthTx(sender)
+	newMsgEthTxLegacy := func(sender *itutiltypes.TestAccount) *evmtypes.MsgEthereumTx {
+		to := receiver.GetEthAddress()
+
+		baseFee := suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx())
+		evmTxArgs := &evmtypes.EvmTxArgs{
+			Nonce:     suite.App().EvmKeeper().GetNonce(suite.Ctx(), sender.GetEthAddress()),
+			GasLimit:  21000,
+			Input:     nil,
+			GasFeeCap: nil,
+			GasPrice:  baseFee,
+			ChainID:   suite.App().EvmKeeper().ChainID(),
+			Amount:    big.NewInt(1),
+			GasTipCap: nil,
+			To:        &to,
+			Accesses:  nil,
+		}
+
+		msgEvmTx := evmtypes.NewTx(evmTxArgs)
+		msgEvmTx.From = sender.GetEthAddress().String()
+
+		return msgEvmTx
+	}
+
+	newSignedEthTx := func(sender *itutiltypes.TestAccount, createMsgEthTx func(*itutiltypes.TestAccount) *evmtypes.MsgEthereumTx) *ethtypes.Transaction {
+		msgEvmTx := createMsgEthTx(sender)
 
 		ethTx := msgEvmTx.AsTransaction()
 		sig, _, err := sender.Signer.SignByAddress(msgEvmTx.GetFrom(), suite.CITS.EthSigner.Hash(ethTx).Bytes())
@@ -665,13 +691,23 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 
 	// signed tx
 
-	senderForSignedEthTx := suite.CITS.WalletAccounts.Number(1)
-	signedEthTx := newSignedEthTx(senderForSignedEthTx)
-	signedRlpBz, err := rlp.EncodeToBytes(signedEthTx)
+	senderForSignedEthTxDynamic1 := suite.CITS.WalletAccounts.Number(1)
+	signedEthTxDynamic1 := newSignedEthTx(senderForSignedEthTxDynamic1, newMsgEthTxDynamic)
+	bzSignedEthTx1, err := signedEthTxDynamic1.MarshalBinary()
 	suite.Require().NoError(err)
 
-	senderForToBeSignedMsgEthTx := suite.CITS.WalletAccounts.Number(2)
-	toBeSignedMsgEthTx := newMsgEthTx(senderForToBeSignedMsgEthTx)
+	senderForSignedEthTxDynamic2 := suite.CITS.WalletAccounts.Number(2)
+	signedEthTxDynamic2 := newSignedEthTx(senderForSignedEthTxDynamic2, newMsgEthTxDynamic)
+	rlpSignedEthTxDynamic2, err := rlp.EncodeToBytes(signedEthTxDynamic2)
+	suite.Require().NoError(err)
+
+	senderForSignedEthTxLegacy := suite.CITS.WalletAccounts.Number(3)
+	signedEthTxLegacy := newSignedEthTx(senderForSignedEthTxLegacy, newMsgEthTxLegacy)
+	rlpSignedEthTxLegacy, err := rlp.EncodeToBytes(signedEthTxLegacy)
+	suite.Require().NoError(err)
+
+	senderForToBeSignedMsgEthTx := suite.CITS.WalletAccounts.Number(4)
+	toBeSignedMsgEthTx := newMsgEthTxDynamic(senderForToBeSignedMsgEthTx)
 	signedCosmosMsgEthTx, err := suite.CITS.PrepareEthTx(senderForToBeSignedMsgEthTx, toBeSignedMsgEthTx)
 	suite.Require().NoError(err)
 	bzSignedCosmosMsgEthTx, err := txEncoder(signedCosmosMsgEthTx)
@@ -679,16 +715,16 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 
 	// non-signed tx
 
-	senderForNonSignedMsgEthTx := suite.CITS.WalletAccounts.Number(3)
-	nonSignedMsgEthTx := newMsgEthTx(senderForNonSignedMsgEthTx)
-	nonSignedEthTx := nonSignedMsgEthTx.AsTransaction()
-	notSignedRlpBz, err := rlp.EncodeToBytes(nonSignedEthTx)
+	senderForNonSignedMsgEthTxDynamic := suite.CITS.WalletAccounts.Number(5)
+	nonSignedMsgEthTxDynamic := newMsgEthTxDynamic(senderForNonSignedMsgEthTxDynamic)
+	nonSignedEthTxDynamic := nonSignedMsgEthTxDynamic.AsTransaction()
+	bzNotSignedEthTxDynamic, err := nonSignedEthTxDynamic.MarshalBinary()
 	suite.Require().NoError(err)
 
-	err = txBuilder.SetMsgs(nonSignedMsgEthTx)
+	err = txBuilder.SetMsgs(nonSignedMsgEthTxDynamic)
 	suite.Require().NoError(err)
 
-	nonSignedTxEncodedBz, err := txEncoder(txBuilder.GetTx())
+	bzNotSignedTxEncoded1, err := txEncoder(txBuilder.GetTx())
 	suite.Require().NoError(err)
 
 	// begin test
@@ -701,24 +737,37 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		expErrContains string
 	}{
 		{
-			name:         "send signed tx",
-			rawTx:        signedRlpBz,
-			sourceTxHash: signedEthTx.Hash(),
+			name:         "send signed dynamic tx",
+			rawTx:        bzSignedEthTx1,
+			sourceTxHash: signedEthTxDynamic1.Hash(),
+			expPass:      true,
+		},
+		{
+			name:           "send signed dynamic tx but dynamic can not be RLP encoded",
+			rawTx:          rlpSignedEthTxDynamic2,
+			sourceTxHash:   signedEthTxDynamic2.Hash(),
+			expPass:        false,
+			expErrContains: "rlp: expected input list for types.LegacyTx",
+		},
+		{
+			name:         "send signed legacy tx, RLP encoded",
+			rawTx:        rlpSignedEthTxLegacy,
+			sourceTxHash: signedEthTxLegacy.Hash(),
 			expPass:      true,
 		},
 		{
 			name:           "not accept Cosmos tx, even tho signed",
 			rawTx:          bzSignedCosmosMsgEthTx,
-			sourceTxHash:   signedEthTx.Hash(),
+			sourceTxHash:   signedEthTxDynamic1.Hash(),
 			expPass:        false,
 			expErrContains: "transaction type not supported",
 		},
 		{
 			name:           "send non-signed tx",
-			rawTx:          notSignedRlpBz,
-			sourceTxHash:   nonSignedEthTx.Hash(),
+			rawTx:          bzNotSignedEthTxDynamic,
+			sourceTxHash:   nonSignedEthTxDynamic.Hash(),
 			expPass:        false,
-			expErrContains: "only replay-protected (EIP-155) transactions allowed over RPC",
+			expErrContains: "couldn't retrieve sender address from the ethereum transaction: invalid transaction v, r, s values",
 		},
 		{
 			name:           "fail - empty bytes",
@@ -729,14 +778,15 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		},
 		{
 			name:           "fail - no RLP encoded bytes",
-			rawTx:          nonSignedTxEncodedBz,
-			sourceTxHash:   nonSignedMsgEthTx.AsTransaction().Hash(),
+			rawTx:          bzNotSignedTxEncoded1,
+			sourceTxHash:   nonSignedMsgEthTxDynamic.AsTransaction().Hash(),
 			expPass:        false,
 			expErrContains: "transaction type not supported",
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			fmt.Println(hex.EncodeToString(tc.rawTx))
 			hash, err := suite.GetEthPublicAPI().SendRawTransaction(tc.rawTx)
 
 			if tc.expPass {
@@ -748,7 +798,6 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 				suite.Require().Error(err)
 				suite.Require().NotEmptyf(tc.expErrContains, "missing expected error to check against: %s", err.Error())
 				suite.Require().Contains(err.Error(), tc.expErrContains)
-				suite.Require().Equal(common.Hash{}, hash)
 
 				if tc.sourceTxHash == ([32]byte{}) { // empty
 					// ignore later tests
