@@ -2,7 +2,7 @@ package statedb
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/utils"
+	"github.com/servprotocolorg/serv/v12/utils"
 	"math/big"
 	"sort"
 

@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/servprotocolorg/serv/v12/constants"
 	"math"
 	"testing"
 	"time"
@@ -11,14 +11,14 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/simapp"
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/servprotocolorg/serv/v12/app"
+	"github.com/servprotocolorg/serv/v12/crypto/ethsecp256k1"
+	"github.com/servprotocolorg/serv/v12/encoding"
+	"github.com/servprotocolorg/serv/v12/testutil"
+	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
+	evertypes "github.com/servprotocolorg/serv/v12/types"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
+	feemarkettypes "github.com/servprotocolorg/serv/v12/x/feemarket/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmjson "github.com/cometbft/cometbft/libs/json"
@@ -42,7 +42,7 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	ctx         sdk.Context
-	app         *app.Evermint
+	app         *app.Serv
 	queryClient evmtypes.QueryClient
 	address     common.Address
 	consAddress sdk.ConsAddress
@@ -107,7 +107,7 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = app.EthSetup(checkTx, func(app *app.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
+	suite.app = app.EthSetup(checkTx, func(app *app.Serv, genesis simapp.GenesisState) simapp.GenesisState {
 		feemarketGenesis := feemarkettypes.DefaultGenesisState()
 		if suite.enableFeemarket {
 			feemarketGenesis.Params.EnableHeight = 1

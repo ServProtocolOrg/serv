@@ -16,10 +16,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/app/ante"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
+	"github.com/servprotocolorg/serv/v12/app"
+	"github.com/servprotocolorg/serv/v12/app/ante"
+	"github.com/servprotocolorg/serv/v12/crypto/ethsecp256k1"
+	"github.com/servprotocolorg/serv/v12/encoding"
 )
 
 func TestConsumeSignatureVerificationGas(t *testing.T) {

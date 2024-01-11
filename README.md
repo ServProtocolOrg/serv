@@ -57,7 +57,7 @@ You can also check the instructions to [Run a Node](https://docs.evmos.org/proto
 ### Additional feature provided by Evermint:
 1. Command convert between 0x address and bech32 address, or any custom bech32 HRP
 ```bash
-evmd convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
+servnode convert-address evmos1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz sx
 # alias: "ca"
 ```
 2. [Rename chain](https://github.com/EscanBE/evermint/blob/main/RENAME_CHAIN.md)

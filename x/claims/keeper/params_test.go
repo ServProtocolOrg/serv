@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	"github.com/servprotocolorg/serv/v12/x/claims/types"
 )
 
 func (suite *KeeperTestSuite) TestParams() {

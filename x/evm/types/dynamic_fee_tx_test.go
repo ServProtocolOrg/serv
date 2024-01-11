@@ -11,8 +11,8 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
+	"github.com/servprotocolorg/serv/v12/x/evm/types"
 
 	"github.com/stretchr/testify/suite"
 )

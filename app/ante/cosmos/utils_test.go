@@ -4,9 +4,9 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
+	"github.com/servprotocolorg/serv/v12/app"
+	"github.com/servprotocolorg/serv/v12/crypto/ethsecp256k1"
+	"github.com/servprotocolorg/serv/v12/encoding"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"

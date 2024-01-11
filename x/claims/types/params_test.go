@@ -2,13 +2,13 @@ package types_test
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/servprotocolorg/serv/v12/constants"
 	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	"github.com/servprotocolorg/serv/v12/x/claims/types"
 	"github.com/stretchr/testify/require"
 )
 

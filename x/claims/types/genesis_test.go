@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
+	"github.com/servprotocolorg/serv/v12/x/claims/types"
 
 	"github.com/stretchr/testify/suite"
 )

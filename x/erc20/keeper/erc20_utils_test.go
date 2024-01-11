@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/EscanBE/evermint/v12/contracts"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/servprotocolorg/serv/v12/contracts"
+	"github.com/servprotocolorg/serv/v12/x/erc20/types"
+	evm "github.com/servprotocolorg/serv/v12/x/evm/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 )
