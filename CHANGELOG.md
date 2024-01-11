@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - (store) [#12](https://github.com/EscanBE/evermint/pull/12) Add local `snapshots` management commands
 - (store) [#14](https://github.com/EscanBE/evermint/pull/14) Add `inspect` command and sub-commands
+- (test+rpc) [#74](https://github.com/EscanBE/evermint/pull/74) Add integration test util + add IT skeleton for Json-RPC
 
 ### Improvement
 
