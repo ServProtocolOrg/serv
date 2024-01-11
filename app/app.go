@@ -450,7 +450,7 @@ func NewEvermint(
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	// NOTE: Distr, Slashing and Claim must be created before calling the Hooks method to avoid returning a Keeper without its table generated
+	// NOTE: Distr and Slashing must be created before calling the Hooks method to avoid returning a Keeper without its table generated
 	stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(
 			chainApp.DistrKeeper.Hooks(),
@@ -472,7 +472,7 @@ func NewEvermint(
 
 	chainApp.GovKeeper = *govKeeper.SetHooks(
 		govtypes.NewMultiGovHooks(
-			//
+		//
 		),
 	)
 
@@ -484,7 +484,7 @@ func NewEvermint(
 
 	chainApp.TransferKeeper = transferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], chainApp.GetSubspace(ibctransfertypes.ModuleName),
-		chainApp.IBCKeeper.ChannelKeeper, // ICS4 Wrapper: claims IBC middleware
+		chainApp.IBCKeeper.ChannelKeeper, // No ICS4 wrapper
 		chainApp.IBCKeeper.ChannelKeeper, &chainApp.IBCKeeper.PortKeeper,
 		chainApp.AccountKeeper, chainApp.BankKeeper, scopedTransferKeeper,
 		chainApp.Erc20Keeper, // Add ERC20 Keeper for ERC20 transfers
@@ -518,10 +518,10 @@ func NewEvermint(
 			- IBC Transfer
 
 		SendPacket, since it is originating from the application to core IBC:
-		 	transferKeeper.SendPacket -> claim.SendPacket -> erc20.SendPacket -> channel.SendPacket
+		 	transferKeeper.SendPacket -> erc20.SendPacket -> channel.SendPacket
 
 		RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-			channel.RecvPacket -> erc20.OnRecvPacket -> claim.OnRecvPacket -> transfer.OnRecvPacket
+			channel.RecvPacket -> erc20.OnRecvPacket -> transfer.OnRecvPacket
 	*/
 
 	// create IBC module from top to bottom of stack
