@@ -88,7 +88,9 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 			BaseAccount: authtypes.NewBaseAccount(account.GetCosmosAddress(), account.GetPubKey(), uint64(i), 0),
 			CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).Hex(),
 		}
-		if account.Type == TestAccountTypeValidator {
+
+		switch account.Type {
+		case TestAccountTypeValidator:
 			genesisValidatorAccounts = append(genesisValidatorAccounts, acc)
 
 			signingInfos = append(signingInfos, slashingtypes.SigningInfo{
@@ -102,11 +104,16 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 					MissedBlocksCounter: 0,
 				},
 			})
-		} else if account.Type == TestAccountTypeWallet {
+
+			break
+		case TestAccountTypeWallet:
 			genesisWalletAccounts = append(genesisWalletAccounts, acc)
-		} else {
+
+			break
+		default:
 			panic(fmt.Sprintf("unknown account type %d", account.Type))
 		}
+
 		genesisBalances = append(genesisBalances, banktypes.Balance{
 			Address: acc.GetAddress().String(),
 			Coins:   genesisAccountBalance,
