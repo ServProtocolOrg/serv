@@ -141,7 +141,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			expCoins:      coins,
 		},
 		{
-			name: "no-op - sender == receiver, not from Evm channel",
+			name: "no-op - sender == receiver",
 			malleate: func() {
 				transfer := transfertypes.NewFungibleTokenPacketData(registeredDenom, "100", ethsecpAddrEvermint, ethsecpAddrCosmos, "")
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
@@ -207,19 +207,15 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 1, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			ackSuccess: true,
-			receiver:   ethsecpAddr,
-			expErc20s:  big.NewInt(0),
-			expCoins: sdk.NewCoins(
-				sdk.NewCoin(constants.BaseDenom, sdk.NewInt(1000)),
-				sdk.NewCoin(registeredDenom, sdk.NewInt(0)),
-				sdk.NewCoin(ibcBase, sdk.NewInt(1000)),
-			),
-			checkBalances:    false,
+			ackSuccess:       true,
+			receiver:         ethsecpAddr,
+			expErc20s:        big.NewInt(0),
+			expCoins:         coins,
+			checkBalances:    true,
 			disableTokenPair: true,
 		},
 		{
-			name: "no-op - sender == receiver and is not from evm chain", // getting failed to escrow coins - need to escrow coins
+			name: "no-op - sender == receiver", // getting failed to escrow coins - need to escrow coins
 			malleate: func() {
 				transfer := transfertypes.NewFungibleTokenPacketData(registeredDenom, "100", secpAddrCosmos, secpAddrEvermint, "")
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
@@ -227,7 +223,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			},
 			receiver:      secpAddr,
 			ackSuccess:    true,
-			checkBalances: false,
+			checkBalances: true,
 			expErc20s:     big.NewInt(0),
 			expCoins:      coins,
 		},
@@ -380,10 +376,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			if tc.checkBalances {
 				// Check ERC20 balances
 				balanceTokenAfter := suite.app.Erc20Keeper.BalanceOf(suite.ctx, contracts.ERC20MinterBurnerDecimalsContract.ABI, pair.GetERC20Contract(), common.BytesToAddress(tc.receiver.Bytes()))
-				suite.Require().Equal(tc.expErc20s.Int64(), balanceTokenAfter.Int64())
+				suite.Equal(tc.expErc20s.Int64(), balanceTokenAfter.Int64())
 				// Check Cosmos Coin Balances
 				balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.receiver)
-				suite.Require().Equal(tc.expCoins, balances)
+				suite.Equalf(tc.expCoins, balances, "expected: %s, got: %s", tc.expCoins.Sort().String(), balances.Sort().String())
 			}
 		})
 	}
