@@ -128,7 +128,7 @@ func newIbcTestingChain(coordinator *ibctesting.Coordinator, chain *ChainIntegra
 	for _, validatorAccount := range chain.ValidatorAccounts {
 		//goland:noinspection GoDeprecation
 		pv := ibcmock.PV{
-			PrivKey: &cosmosed25519.PrivKey{
+			PrivKey: &cosmosed25519.PrivKey{ //nolint:staticcheck
 				Key: ed25519.NewKeyFromSeed(validatorAccount.PrivateKey.Key),
 			},
 		}

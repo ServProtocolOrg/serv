@@ -66,7 +66,7 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 	for _, validatorAccount := range validatorAccounts {
 		//goland:noinspection GoDeprecation
 		pv := mock.PV{
-			PrivKey: &cosmosed25519.PrivKey{
+			PrivKey: &cosmosed25519.PrivKey{ //nolint:staticcheck
 				Key: ed25519.NewKeyFromSeed(validatorAccount.PrivateKey.Key),
 			},
 		}

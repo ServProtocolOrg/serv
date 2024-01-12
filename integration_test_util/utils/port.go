@@ -41,7 +41,8 @@ func GetNextPortAvailable() int {
 
 // isPortClosed checks if given port is closed.
 func isPortClosed(port int) (closed bool, err error) {
-	closed = true // default: treating as closed
+	// default: treating as closed
+	closed = true //nolint:ineffassign
 
 	var conn net.Conn
 
