@@ -313,6 +313,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionCount() {
 		suite.Commit() // commit to passive trigger EVM Tx indexer
 
 		tx, err := suite.GetEthPublicAPI().GetTransactionByHash(evmTx.AsTransaction().Hash())
+		suite.Require().NoError(err)
 
 		nonceTracker[evmTx.AsTransaction().Nonce()] = blockInfo{
 			height: tx.BlockNumber.ToInt().Int64(),
@@ -383,7 +384,6 @@ func (suite *EthRpcTestSuite) Test_GetTransactionReceipt() {
 
 		var allSenders []*itutiltypes.TestAccount
 		var msgEvmTxs []*evmtypes.MsgEthereumTx
-		var evmTxSender []*itutiltypes.TestAccount
 
 		for n := 1; n <= 6; n++ {
 			sender := integration_test_util.NewTestAccount(suite.T(), nil)
@@ -405,7 +405,6 @@ func (suite *EthRpcTestSuite) Test_GetTransactionReceipt() {
 				suite.Require().NoError(err, "failed to send tx to create test data")
 
 				msgEvmTxs = append(msgEvmTxs, msgEthereumTx)
-				evmTxSender = append(evmTxSender, sender)
 			} else {
 				// Txs must be sent async to ensure same block height
 				err := suite.CITS.TxSendAsync(sender, receiver, 1) // bank sent
@@ -549,7 +548,6 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByBlockNumberAndHashAndIndex() 
 
 		var allSenders []*itutiltypes.TestAccount
 		var msgEvmTxs []*evmtypes.MsgEthereumTx
-		var evmTxSender []*itutiltypes.TestAccount
 
 		for n := 1; n <= 6; n++ {
 			sender := integration_test_util.NewTestAccount(suite.T(), nil)
@@ -571,7 +569,6 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByBlockNumberAndHashAndIndex() 
 				suite.Require().NoError(err, "failed to send tx to create test data")
 
 				msgEvmTxs = append(msgEvmTxs, msgEthereumTx)
-				evmTxSender = append(evmTxSender, sender)
 			} else {
 				// Txs must be sent async to ensure same block height
 				err := suite.CITS.TxSendAsync(sender, receiver, 1) // bank sent
@@ -810,6 +807,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 			suite.Commit()
 
 			rpcTx, err := suite.GetEthPublicAPI().GetTransactionByHash(hash)
+			suite.Require().NoError(err)
 			if tc.expPass {
 				if suite.NotNil(rpcTx) {
 					suite.Equal(hash, rpcTx.Hash)
@@ -903,6 +901,7 @@ func (suite *EthRpcTestSuite) Test_SendTransaction() {
 			suite.Commit()
 
 			rpcTx, err := suite.GetEthPublicAPI().GetTransactionByHash(txHash)
+			suite.Require().NoError(err)
 			if suite.NotNil(rpcTx) {
 				suite.Equal(txHash, rpcTx.Hash)
 			}

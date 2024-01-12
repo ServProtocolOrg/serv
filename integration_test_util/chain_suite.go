@@ -2,6 +2,7 @@ package integration_test_util
 
 //goland:noinspection SpellCheckingInspection
 import (
+	"context"
 	"cosmossdk.io/simapp/params"
 	"fmt"
 	chainapp "github.com/EscanBE/evermint/v12/app"
@@ -246,7 +247,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 
 	result.CreateAllQueryClientsAndRpcBackend()
 
-	accounts, _ := result.QueryClients.Auth.ModuleAccounts(nil, &authtypes.QueryModuleAccountsRequest{})
+	accounts, _ := result.QueryClients.Auth.ModuleAccounts(context.Background(), &authtypes.QueryModuleAccountsRequest{})
 	for _, acc := range accounts.Accounts {
 		var account authtypes.AccountI
 		err = encodingCfg.InterfaceRegistry.UnpackAny(acc, &account)

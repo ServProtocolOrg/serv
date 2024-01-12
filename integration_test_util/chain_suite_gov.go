@@ -73,8 +73,6 @@ func (suite *ChainIntegrationTestSuite) TxAllVote(proposalId uint64, option govv
 		suite.Require().NoErrorf(err, "voter %s could not vote", voter.GetCosmosAddress().String())
 		voted[voter.GetCosmosAddress().String()] = true
 	}
-
-	return
 }
 
 // QueryLatestGovProposal returns the latest gov proposal submitted by given proposer.

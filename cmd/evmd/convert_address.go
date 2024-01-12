@@ -36,9 +36,7 @@ Bech32 evmos: evmos1sv9m0g7ycejwr3s369km58h5qe7xj77hvcxrms
 			var nextConvertToBech32 string
 			if len(args) == 2 {
 				nextConvertToBech32 = strings.TrimSpace(strings.ToLower(args[1]))
-				if strings.HasSuffix(nextConvertToBech32, "1") {
-					nextConvertToBech32 = nextConvertToBech32[:len(nextConvertToBech32)-1]
-				}
+				nextConvertToBech32 = strings.TrimSuffix(nextConvertToBech32, "1")
 			}
 
 			var bytesAddress string
