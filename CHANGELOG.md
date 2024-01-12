@@ -61,7 +61,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (test) [#50](https://github.com/EscanBE/evermint/pull/50) Set chain-id into client.toml during init testnet
 - (ante) [#59](https://github.com/EscanBE/evermint/pull/59) Prevent panic when building error message of fee which overflow int64
 - (swagger) [#66](https://github.com/EscanBE/evermint/pull/66) Correct script gen swagger after switched to use vanilla Cosmos-SDK
-- (evm) [#76](https://github.com/EscanBE/evermint/pull/76) Fix wrong Ethereum Tx type when convert to `MsgEthereumTx`
+- (rename-chain) [#80](https://github.com/EscanBE/evermint/pull/80) Handle new cases of rename-chain with recent changes
 
 ### Client Breaking
 
@@ -81,6 +81,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (revenue) [#68](https://github.com/EscanBE/evermint/pull/68) Remove `x/revenue` module
 - (recovery) [#69](https://github.com/EscanBE/evermint/pull/69) Remove `x/recovery` module
 - (epochs) [#70](https://github.com/EscanBE/evermint/pull/70) Remove `x/epochs` module
+- (evm) [#76](https://github.com/EscanBE/evermint/pull/76) Fix wrong Ethereum Tx type when convert to `MsgEthereumTx`
 
 # Evermint changelog
 
