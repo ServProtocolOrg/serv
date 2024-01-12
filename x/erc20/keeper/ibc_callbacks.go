@@ -56,6 +56,18 @@ func (k Keeper) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
+	/*
+		This is a special case where the sender and recipient are the same
+		that can fall into the problem identified in ticket #79.
+
+		At this time, we decided to keep conversion.
+		However, we should implement another method to helps user take their funds back.
+
+		if sender.Equals(recipient) && !IsEVMChannel(packet.DestinationChannel) {
+			return ack
+		}
+	*/
+
 	senderAcc := k.accountKeeper.GetAccount(ctx, sender)
 
 	// return acknoledgement without conversion if sender is a module account
