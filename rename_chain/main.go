@@ -198,7 +198,11 @@ func main() {
 
 	patternMarker := regexp.MustCompile(`marker\.(\w+)\("(\w+)"\)`)
 	for _, goFile := range goFiles {
-		if !strings.HasSuffix(goFile, "_test.go") {
+		if strings.HasSuffix(goFile, "_test.go") {
+			// ok
+		} else if strings.HasSuffix(goFile, "integration_test_util/accounts.go") {
+			// ok
+		} else {
 			continue
 		}
 
@@ -227,6 +231,8 @@ func main() {
 			hrp := constants.Bech32Prefix
 			if strings.HasPrefix(ogBech32Address, EvermintOg_Bech32PrefixValAddr) {
 				hrp = constants.Bech32PrefixValAddr
+			} else if strings.HasPrefix(ogBech32Address, EvermintOg_Bech32PrefixValConsAddr) {
+				hrp = constants.Bech32PrefixConsAddr
 			}
 
 			if match[1] == "ReplaceAbleAddress" {
@@ -434,8 +440,9 @@ const (
 	EvermintOg_DisplayDenom = "ether"
 	EvermintOg_SymbolDenom  = "ETH"
 
-	EvermintOg_Bech32Prefix        = "evm"
-	EvermintOg_Bech32PrefixValAddr = "evmvaloper"
+	EvermintOg_Bech32Prefix            = "evm"
+	EvermintOg_Bech32PrefixValAddr     = "evmvaloper"
+	EvermintOg_Bech32PrefixValConsAddr = "evmvalcons"
 
 	EvermintOg_MainnetChainID = "evermint_90909"
 	EvermintOg_TestnetChainID = "evermint_80808"
