@@ -25,9 +25,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	ethparams "github.com/ethereum/go-ethereum/params"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evertypes "github.com/servprotocolorg/serv/v12/types"
+	"github.com/servprotocolorg/serv/v12/x/evm/statedb"
+	"github.com/servprotocolorg/serv/v12/x/evm/types"
 )
 
 var _ types.QueryServer = Keeper{}

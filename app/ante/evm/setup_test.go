@@ -1,7 +1,7 @@
 package evm_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/servprotocolorg/serv/v12/constants"
 	"math"
 	"testing"
 	"time"
@@ -11,12 +11,12 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/simapp"
-	"github.com/EscanBE/evermint/v12/app"
-	ante "github.com/EscanBE/evermint/v12/app/ante"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/servprotocolorg/serv/v12/app"
+	ante "github.com/servprotocolorg/serv/v12/app/ante"
+	"github.com/servprotocolorg/serv/v12/encoding"
+	"github.com/servprotocolorg/serv/v12/ethereum/eip712"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
+	feemarkettypes "github.com/servprotocolorg/serv/v12/x/feemarket/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,7 +28,7 @@ type AnteTestSuite struct {
 	suite.Suite
 
 	ctx                      sdk.Context
-	app                      *app.Evermint
+	app                      *app.Serv
 	clientCtx                client.Context
 	anteHandler              sdk.AnteHandler
 	ethSigner                types.Signer
@@ -44,7 +44,7 @@ const TestGasLimit uint64 = 100000
 func (suite *AnteTestSuite) SetupTest() {
 	checkTx := false
 
-	suite.app = app.EthSetup(checkTx, func(app *app.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
+	suite.app = app.EthSetup(checkTx, func(app *app.Serv, genesis simapp.GenesisState) simapp.GenesisState {
 		if suite.enableFeemarket {
 			// setup feemarketGenesis params
 			feemarketGenesis := feemarkettypes.DefaultGenesisState()
@@ -78,7 +78,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1000000000000000000))
 	suite.app.EvmKeeper.WithChainID(suite.ctx)
 
-	// set staking denomination to Evermint denom
+	// set staking denomination to Serv denom
 	params := suite.app.StakingKeeper.GetParams(suite.ctx)
 	params.BondDenom = constants.BaseDenom
 	suite.app.StakingKeeper.SetParams(suite.ctx, params)

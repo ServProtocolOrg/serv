@@ -8,16 +8,16 @@ import (
 
 	"github.com/ethereum/go-ethereum/rpc"
 
-	"github.com/EscanBE/evermint/v12/rpc/backend"
-	"github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/debug"
-	"github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/eth"
-	"github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/eth/filters"
-	"github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/miner"
-	"github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/net"
-	"github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/personal"
-	"github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/txpool"
-	"github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/web3"
-	"github.com/EscanBE/evermint/v12/types"
+	"github.com/servprotocolorg/serv/v12/rpc/backend"
+	"github.com/servprotocolorg/serv/v12/rpc/namespaces/ethereum/debug"
+	"github.com/servprotocolorg/serv/v12/rpc/namespaces/ethereum/eth"
+	"github.com/servprotocolorg/serv/v12/rpc/namespaces/ethereum/eth/filters"
+	"github.com/servprotocolorg/serv/v12/rpc/namespaces/ethereum/miner"
+	"github.com/servprotocolorg/serv/v12/rpc/namespaces/ethereum/net"
+	"github.com/servprotocolorg/serv/v12/rpc/namespaces/ethereum/personal"
+	"github.com/servprotocolorg/serv/v12/rpc/namespaces/ethereum/txpool"
+	"github.com/servprotocolorg/serv/v12/rpc/namespaces/ethereum/web3"
+	"github.com/servprotocolorg/serv/v12/types"
 
 	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 )

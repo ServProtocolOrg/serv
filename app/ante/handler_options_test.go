@@ -1,14 +1,14 @@
 package ante_test
 
 import (
-	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	ethante "github.com/servprotocolorg/serv/v12/app/ante/evm"
+	"github.com/servprotocolorg/serv/v12/encoding"
+	"github.com/servprotocolorg/serv/v12/types"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/app/ante"
+	"github.com/servprotocolorg/serv/v12/app"
+	"github.com/servprotocolorg/serv/v12/app/ante"
 )
 
 func (suite *AnteTestSuite) TestDefaultDisabledAuthzMsgs() {
