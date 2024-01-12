@@ -132,6 +132,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	_ = os.RemoveAll("rename_chain")
+
 	ogGitHubWithoutScheme := strings.TrimSuffix(strings.Split(EvermintOg_GitHubRepo, "://")[1], ".git")
 	ogGoModule := fmt.Sprintf("%s/v12", ogGitHubWithoutScheme)
 	splOgGitHub := strings.Split(ogGitHubWithoutScheme, "/")
