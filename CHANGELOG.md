@@ -87,6 +87,22 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 #### Note: Evermint was born for development and research purpose so maintainers do not support migration for new upgrade/breaking changes. 
 
+## [v12.2.3] - 2024-01-12
+
+### Improvements
+
+- (test) [#51](https://github.com/EscanBE/evermint/pull/51) Set chain-id into client.toml during init testnet
+- (ante) [#65](https://github.com/EscanBE/evermint/pull/65) Add EvmTx sender override protection in ante and correct changelog (backport #64)
+
+### Bug Fixes
+
+- (ante) [#60](https://github.com/EscanBE/evermint/pull/60) Prevent panic when building error message of fee which overflow int64 (backport #59)
+
+### State Machine Breaking
+
+- (ante) [#63](https://github.com/EscanBE/evermint/pull/63) Disable more authz msgs + refactor optimize AuthzLimiterDecorator (backport #62)
+- (evm) [#77](https://github.com/EscanBE/evermint/pull/77) Fix wrong Ethereum Tx type when convert to `MsgEthereumTx` (backport #76)
+
 ## [v12.2.2] - 2024-01-03
 
 ### Improvements
