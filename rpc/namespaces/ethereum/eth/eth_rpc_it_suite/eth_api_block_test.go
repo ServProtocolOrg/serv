@@ -506,12 +506,8 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 	suite.Run("test input data of txs in full-txs mode", func() {
 		deployer := suite.CITS.WalletAccounts.Number(1)
 
-		evmKeeper := suite.App().EvmKeeper()
-		nonce := evmKeeper.GetNonce(suite.Ctx(), deployer.GetEthAddress())
-
 		_, evmTxsMsg, _, err := suite.CITS.TxDeploy1StorageContract(deployer)
 		suite.Require().NoError(err)
-		nonce++
 
 		suite.Commit() // trigger EVM Tx indexer to index block
 
@@ -573,7 +569,6 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 
 		var allSenders []*itutiltypes.TestAccount
 		var msgEvmTxs []*evmtypes.MsgEthereumTx
-		var evmTxSender []*itutiltypes.TestAccount
 
 		for n := 1; n <= 6; n++ {
 			sender := integration_test_util.NewTestAccount(suite.T(), nil)
@@ -595,7 +590,6 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 				suite.Require().NoError(err, "failed to send tx to create test data")
 
 				msgEvmTxs = append(msgEvmTxs, msgEthereumTx)
-				evmTxSender = append(evmTxSender, sender)
 			} else {
 				// Txs must be sent async to ensure same block height
 				err := suite.CITS.TxSendAsync(sender, receiver, 1) // bank sent

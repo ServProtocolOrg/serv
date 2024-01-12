@@ -11,7 +11,7 @@ var _ TendermintApp = &tendermintAppImp{}
 type tendermintAppImp struct {
 	tendermintNode *nm.Node
 	rpcAddr        string
-	grpcAddr       string
+	grpcAddr       string //nolint:unused
 }
 
 func NewTendermintApp(tendermintNode *nm.Node, rpcPort int) TendermintApp {

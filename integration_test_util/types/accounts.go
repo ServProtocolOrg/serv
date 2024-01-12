@@ -48,7 +48,7 @@ func (a TestAccount) GetTmPubKey() tmcrypto.PubKey {
 func (a TestAccount) GetTmPrivKey() tmcrypto.PrivKey {
 	//goland:noinspection GoDeprecation
 	pv := mock.PV{
-		PrivKey: &cosmosed25519.PrivKey{
+		PrivKey: &cosmosed25519.PrivKey{ //nolint:staticcheck
 			Key: ed25519.NewKeyFromSeed(a.PrivateKey.Key),
 		},
 	}

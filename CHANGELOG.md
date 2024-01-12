@@ -50,6 +50,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (fee) [#37](https://github.com/EscanBE/evermint/pull/37) Reject cosmos txs that fee denom is not evm denom
 - (test) [#46](https://github.com/EscanBE/evermint/pull/46) Use static mnemonic for scripts init nodes and `evmd testnet init-files`
 - (ante) [#64](https://github.com/EscanBE/evermint/pull/64) Add EvmTx sender override protection in ante and correct changelog
+- (lint) [#83](https://github.com/EscanBE/evermint/pull/83) Update lint rules and fix lint issues
 
 ### Bug Fixes
 
