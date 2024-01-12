@@ -72,7 +72,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		receiver         sdk.AccAddress
 		expErc20s        *big.Int
 		expCoins         sdk.Coins
-		checkBalances    bool
 		disableERC20     bool
 		disableTokenPair bool
 	}{
@@ -81,11 +80,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			malleate: func() {
 				packet = mockPacket
 			},
-			receiver:      secpAddr,
-			ackSuccess:    false,
-			checkBalances: false,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
+			receiver:   secpAddr,
+			ackSuccess: false,
+			expErc20s:  big.NewInt(0),
+			expCoins:   coins,
 		},
 		{
 			name: "no-op - erc20 module param disabled",
@@ -94,12 +92,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 1, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			receiver:      secpAddr,
-			disableERC20:  true,
-			ackSuccess:    true,
-			checkBalances: false,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
+			receiver:     secpAddr,
+			disableERC20: true,
+			ackSuccess:   true,
+			expErc20s:    big.NewInt(0),
+			expCoins:     coins,
 		},
 		{
 			name: "error - invalid sender (no '1')",
@@ -108,11 +105,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 100, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			receiver:      secpAddr,
-			ackSuccess:    false,
-			checkBalances: false,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
+			receiver:   secpAddr,
+			ackSuccess: false,
+			expErc20s:  big.NewInt(0),
+			expCoins:   coins,
 		},
 		{
 			name: "error - invalid sender (bad address)",
@@ -121,11 +117,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 100, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			receiver:      secpAddr,
-			ackSuccess:    false,
-			checkBalances: false,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
+			receiver:   secpAddr,
+			ackSuccess: false,
+			expErc20s:  big.NewInt(0),
+			expCoins:   coins,
 		},
 		{
 			name: "error - invalid recipient (bad address)",
@@ -134,11 +129,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 100, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			receiver:      secpAddr,
-			ackSuccess:    false,
-			checkBalances: false,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
+			receiver:   secpAddr,
+			ackSuccess: false,
+			expErc20s:  big.NewInt(0),
+			expCoins:   coins,
 		},
 		{
 			name: "no-op - sender == receiver",
@@ -147,11 +141,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 1, transfertypes.PortID, sourceChannel, transfertypes.PortID, "channel-100", timeoutHeight, 0)
 			},
-			ackSuccess:    true,
-			receiver:      secpAddr,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
-			checkBalances: true,
+			ackSuccess: true,
+			receiver:   secpAddr,
+			expErc20s:  big.NewInt(0),
+			expCoins:   coins,
 		},
 		{
 			name: "no-op - receiver is module account",
@@ -161,11 +154,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 100, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			ackSuccess:    true,
-			receiver:      secpAddr,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
-			checkBalances: true,
+			ackSuccess: true,
+			receiver:   secpAddr,
+			expErc20s:  big.NewInt(0),
+			expCoins:   coins,
 		},
 		{
 			name: "no-op - base denomination",
@@ -177,11 +169,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 1, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			ackSuccess:    true,
-			receiver:      ethsecpAddr,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
-			checkBalances: true,
+			ackSuccess: true,
+			receiver:   ethsecpAddr,
+			expErc20s:  big.NewInt(0),
+			expCoins:   coins,
 		},
 		{
 			name: "no-op - pair is not registered",
@@ -190,11 +181,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 1, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			ackSuccess:    true,
-			receiver:      ethsecpAddr,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
-			checkBalances: true,
+			ackSuccess: true,
+			receiver:   ethsecpAddr,
+			expErc20s:  big.NewInt(0),
+			expCoins:   coins,
 		},
 		{
 			name: "no-op - pair disabled",
@@ -211,7 +201,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			receiver:         ethsecpAddr,
 			expErc20s:        big.NewInt(0),
 			expCoins:         coins,
-			checkBalances:    true,
 			disableTokenPair: true,
 		},
 		{
@@ -221,11 +210,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 100, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			receiver:      secpAddr,
-			ackSuccess:    true,
-			checkBalances: true,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
+			receiver:   secpAddr,
+			ackSuccess: true,
+			expErc20s:  big.NewInt(0),
+			expCoins:   coins,
 		},
 		{
 			name: "error - invalid denomination", // should fall as unregistered and not transfer any coins, but ack is Success
@@ -234,11 +222,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 1, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			receiver:      secpAddr,
-			ackSuccess:    true,
-			checkBalances: true,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
+			receiver:   secpAddr,
+			ackSuccess: true,
+			expErc20s:  big.NewInt(0),
+			expCoins:   coins,
 		},
 		{
 			name: "ibc conversion - sender == receiver",
@@ -249,10 +236,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 100, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			receiver:      secpAddr,
-			ackSuccess:    true,
-			checkBalances: true,
-			expErc20s:     big.NewInt(1000),
+			receiver:   secpAddr,
+			ackSuccess: true,
+			expErc20s:  big.NewInt(1000),
 			expCoins: sdk.NewCoins(
 				sdk.NewCoin(constants.BaseDenom, sdk.NewInt(1000)),
 				sdk.NewCoin(registeredDenom, sdk.NewInt(0)),
@@ -270,10 +256,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 100, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			receiver:      ethsecpAddr,
-			ackSuccess:    true,
-			expErc20s:     big.NewInt(1000),
-			checkBalances: true,
+			receiver:   ethsecpAddr,
+			ackSuccess: true,
+			expErc20s:  big.NewInt(1000),
 			expCoins: sdk.NewCoins(
 				sdk.NewCoin(constants.BaseDenom, sdk.NewInt(1000)),
 				sdk.NewCoin(registeredDenom, sdk.NewInt(0)),
@@ -295,10 +280,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 100, transfertypes.PortID, sourceChannel, transfertypes.PortID, evermintChannel, timeoutHeight, 0)
 			},
-			receiver:      ethsecpAddr,
-			ackSuccess:    true,
-			checkBalances: true,
-			expErc20s:     big.NewInt(1000),
+			receiver:   ethsecpAddr,
+			ackSuccess: true,
+			expErc20s:  big.NewInt(1000),
 			expCoins: sdk.NewCoins(
 				sdk.NewCoin(ibcBase, sdk.NewInt(1000)),
 				sdk.NewCoin(constants.BaseDenom, sdk.NewInt(1000)),
@@ -373,14 +357,21 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.Require().False(ack.Success(), string(ack.Acknowledgement()))
 			}
 
-			if tc.checkBalances {
-				// Check ERC20 balances
-				balanceTokenAfter := suite.app.Erc20Keeper.BalanceOf(suite.ctx, contracts.ERC20MinterBurnerDecimalsContract.ABI, pair.GetERC20Contract(), common.BytesToAddress(tc.receiver.Bytes()))
-				suite.Equal(tc.expErc20s.Int64(), balanceTokenAfter.Int64())
-				// Check Cosmos Coin Balances
-				balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.receiver)
-				suite.Equalf(tc.expCoins, balances, "expected: %s, got: %s", tc.expCoins.Sort().String(), balances.Sort().String())
+			expErc20s := tc.expErc20s
+			expCoins := tc.expCoins
+			if expErc20s == nil {
+				expErc20s = big.NewInt(0)
 			}
+			if expCoins == nil {
+				expCoins = coins // use initial coins
+			}
+
+			// Check ERC20 balances
+			balanceTokenAfter := suite.app.Erc20Keeper.BalanceOf(suite.ctx, contracts.ERC20MinterBurnerDecimalsContract.ABI, pair.GetERC20Contract(), common.BytesToAddress(tc.receiver.Bytes()))
+			suite.Equal(tc.expErc20s.Int64(), balanceTokenAfter.Int64())
+			// Check Cosmos Coin Balances
+			balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.receiver)
+			suite.Equalf(tc.expCoins, balances, "expected: %s, got: %s", tc.expCoins.Sort().String(), balances.Sort().String())
 		})
 	}
 }
