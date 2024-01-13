@@ -370,25 +370,9 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	blockRes *tmrpctypes.ResultBlockResults,
 	fullTx bool,
 ) (map[string]interface{}, error) {
+	// prepare block information
+
 	block := resBlock.Block
-
-	baseFee, err := b.BaseFee(blockRes)
-	if err != nil {
-		// handle the error for pruned node.
-		b.logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", block.Height, "error", err)
-	}
-
-	msgs := b.EthMsgsFromTendermintBlock(resBlock, blockRes)
-
-	var transactions ethtypes.Transactions
-	for _, ethMsg := range msgs {
-		transactions = append(transactions, ethMsg.AsTransaction())
-	}
-
-	bloom, err := b.BlockBloom(blockRes)
-	if err != nil {
-		b.logger.Debug("failed to query BlockBloom", "height", block.Height, "error", err.Error())
-	}
 
 	req := &evmtypes.QueryValidatorAccountRequest{
 		ConsAddress: sdk.ConsAddress(block.Header.ProposerAddress).String(),
@@ -399,6 +383,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	ctx := rpctypes.ContextWithHeight(block.Height)
 	res, err := b.queryClient.ValidatorAccount(ctx, req)
 	if err != nil {
+		// TODO ES return error
 		b.logger.Debug(
 			"failed to query validator operator address",
 			"height", block.Height,
@@ -406,6 +391,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 			"error", err.Error(),
 		)
 		// use zero address as the validator operator address
+		//goland:noinspection GoRedundantConversion
 		validatorAccAddr = sdk.AccAddress(common.Address{}.Bytes())
 	} else {
 		validatorAccAddr, err = sdk.AccAddressFromBech32(res.AccountAddress)
@@ -416,12 +402,15 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 	validatorAddr := common.BytesToAddress(validatorAccAddr)
 
+	// prepare gas & fee information
+
 	gasLimit, err := rpctypes.BlockMaxGasFromConsensusParams(ctx, b.clientCtx, block.Height)
 	if err != nil {
+		// TODO ES return error
 		b.logger.Error("failed to query consensus params", "error", err.Error())
 	}
 
-	gasUsed := uint64(0)
+	var gasUsed uint64
 
 	for _, txsResult := range blockRes.TxsResults {
 		// workaround for cosmos-sdk bug. https://github.com/cosmos/cosmos-sdk/issues/10832
@@ -431,6 +420,32 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 		}
 		gasUsed += uint64(txsResult.GetGasUsed()) // #nosec G701 -- checked for int overflow already
 	}
+
+	baseFee, err := b.BaseFee(blockRes)
+	if err != nil {
+		// TODO ES return error
+		// handle the error for pruned node.
+		b.logger.Error("failed to fetch Base Fee from pruned block. Check node pruning configuration", "height", block.Height, "error", err)
+	}
+
+	// prepare txs information
+
+	ethMsgs := b.EthMsgsFromTendermintBlock(resBlock, blockRes)
+
+	var transactions ethtypes.Transactions
+	for _, ethMsg := range ethMsgs {
+		transactions = append(transactions, ethMsg.AsTransaction())
+	}
+
+	// prepare bloom information
+
+	bloom, err := b.BlockBloom(blockRes)
+	if err != nil {
+		// TODO ES return error
+		b.logger.Debug("failed to query BlockBloom", "height", block.Height, "error", err.Error())
+	}
+
+	// finalize
 
 	formattedBlock := rpctypes.FormatBlock(
 		block.Header,
@@ -442,6 +457,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 		validatorAddr,
 		b.logger,
 	)
+
 	return formattedBlock, nil
 }
 
