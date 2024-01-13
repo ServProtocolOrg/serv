@@ -88,6 +88,9 @@ servnode convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 
 Install all dependencies:
 
+`sudo apt update
+sudo apt install snapd`
+
 `sudo snap install go --classic && sudo apt-get install git && sudo apt-get install gcc && sudo apt-get install make`
 
 Or install individually:
