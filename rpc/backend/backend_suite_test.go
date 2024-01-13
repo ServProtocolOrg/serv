@@ -131,14 +131,15 @@ func (suite *BackendTestSuite) buildFormattedBlock(
 	gasLimit := int64(^uint32(0)) // for `MaxGas = -1` (DefaultConsensusParams)
 	gasUsed := new(big.Int).SetUint64(uint64(blockRes.TxsResults[0].GasUsed))
 
-	root := common.Hash{}.Bytes()
-	receipt := ethtypes.NewReceipt(root, false, gasUsed.Uint64())
-	bloom := ethtypes.CreateBloom(ethtypes.Receipts{receipt})
-
 	var transactions ethtypes.Transactions
+	var receipts ethtypes.Receipts
 	if tx != nil {
 		transactions = append(transactions, tx.AsTransaction())
+		receipt := createTestReceipt(nil, resBlock, tx, false, mockGasUsed)
+		receipts = append(receipts, receipt)
 	}
+
+	bloom := ethtypes.CreateBloom(receipts)
 
 	return rpctypes.FormatBlock(
 		header,
@@ -146,11 +147,37 @@ func (suite *BackendTestSuite) buildFormattedBlock(
 		resBlock.Block.Size(),
 		gasLimit, gasUsed, baseFee,
 		transactions, fullTx,
-		ethtypes.Receipts{receipt},
+		receipts,
 		bloom,
 		common.BytesToAddress(validator.Bytes()),
 		suite.backend.logger,
 	)
+}
+
+func createTestReceipt(root []byte, resBlock *tmrpctypes.ResultBlock, tx *evmtypes.MsgEthereumTx, failed bool, gasUsed uint64) *ethtypes.Receipt {
+	var status uint64
+	if failed {
+		status = ethtypes.ReceiptStatusFailed
+	} else {
+		status = ethtypes.ReceiptStatusSuccessful
+	}
+
+	transaction := tx.AsTransaction()
+
+	return &ethtypes.Receipt{
+		Type:              transaction.Type(),
+		PostState:         root,
+		Status:            status,
+		CumulativeGasUsed: gasUsed,
+		Bloom:             ethtypes.BytesToBloom(ethtypes.LogsBloom([]*ethtypes.Log{})),
+		Logs:              []*ethtypes.Log{},
+		TxHash:            transaction.Hash(),
+		ContractAddress:   common.Address{},
+		GasUsed:           gasUsed,
+		BlockHash:         common.HexToHash(resBlock.Block.Header.Hash().String()),
+		BlockNumber:       big.NewInt(resBlock.Block.Height),
+		TransactionIndex:  0,
+	}
 }
 
 func (suite *BackendTestSuite) generateTestKeyring(clientDir string) (keyring.Keyring, error) {

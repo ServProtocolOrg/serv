@@ -1156,15 +1156,16 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			gasLimit := int64(^uint32(0)) // for `MaxGas = -1` (DefaultConsensusParams)
 			gasUsed := new(big.Int).SetUint64(uint64(tc.blockRes.TxsResults[0].GasUsed))
 
-			root := common.Hash{}.Bytes()
-			receipt := ethtypes.NewReceipt(root, false, gasUsed.Uint64())
-			bloom := ethtypes.CreateBloom(ethtypes.Receipts{receipt})
-
 			var transactions ethtypes.Transactions
+			var receipts ethtypes.Receipts
 
 			if tc.expTxs {
 				transactions = append(transactions, msgEthereumTx.AsTransaction())
+				receipt := createTestReceipt(nil, tc.resBlock, msgEthereumTx, false, mockGasUsed)
+				receipts = append(receipts, receipt)
 			}
+
+			bloom := ethtypes.CreateBloom(receipts)
 
 			expBlock = ethrpc.FormatBlock(
 				header,
@@ -1172,7 +1173,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				tc.resBlock.Block.Size(),
 				gasLimit, gasUsed, tc.baseFee,
 				transactions, tc.fullTx,
-				ethtypes.Receipts{receipt},
+				receipts,
 				bloom,
 				common.BytesToAddress(tc.validator.Bytes()),
 				log.NewNopLogger(),

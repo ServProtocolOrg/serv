@@ -123,6 +123,13 @@ func FormatBlock(
 		transactionsRoot = ethtypes.DeriveSha(transactions, trie.NewStackTrie(nil))
 	}
 
+	var receiptsRoot common.Hash
+	if len(receipts) == 0 {
+		receiptsRoot = ethtypes.EmptyRootHash
+	} else {
+		receiptsRoot = ethtypes.DeriveSha(receipts, trie.NewStackTrie(nil))
+	}
+
 	var txsList []interface{}
 
 	for txIndex, tx := range transactions {
@@ -167,7 +174,7 @@ func FormatBlock(
 		"gasUsed":          (*hexutil.Big)(gasUsed),
 		"timestamp":        hexutil.Uint64(header.Time.Unix()),
 		"transactionsRoot": transactionsRoot,
-		"receiptsRoot":     ethtypes.EmptyRootHash,
+		"receiptsRoot":     receiptsRoot,
 
 		"uncles":          []common.Hash{},
 		"transactions":    txsList,
