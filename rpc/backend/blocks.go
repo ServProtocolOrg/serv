@@ -453,6 +453,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 		block.Size(),
 		gasLimit, new(big.Int).SetUint64(gasUsed), baseFee,
 		transactions, fullTx,
+		nil,
 		bloom,
 		validatorAddr,
 		b.logger,

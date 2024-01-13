@@ -1104,6 +1104,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				tc.resBlock.Block.Size(),
 				gasLimit, gasUsed, tc.baseFee,
 				transactions, tc.fullTx,
+				ethtypes.Receipts{receipt},
 				bloom,
 				common.BytesToAddress(tc.validator.Bytes()),
 				log.NewNopLogger(),

@@ -145,6 +145,7 @@ func (suite *BackendTestSuite) buildFormattedBlock(
 		resBlock.Block.Size(),
 		gasLimit, gasUsed, baseFee,
 		transactions, fullTx,
+		ethtypes.Receipts{receipt},
 		bloom,
 		common.BytesToAddress(validator.Bytes()),
 		suite.backend.logger,

@@ -111,6 +111,7 @@ func FormatBlock(
 	size int,
 	gasLimit int64, gasUsed *big.Int, baseFee *big.Int,
 	transactions ethtypes.Transactions, fullTx bool,
+	receipts ethtypes.Receipts,
 	bloom ethtypes.Bloom,
 	validatorAddr common.Address,
 	logger log.Logger,
