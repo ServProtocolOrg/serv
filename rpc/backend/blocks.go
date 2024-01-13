@@ -402,6 +402,11 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 	validatorAddr := common.BytesToAddress(validatorAccAddr)
 
+	chainID, err := b.ChainID()
+	if err != nil {
+		return nil, err
+	}
+
 	// prepare gas & fee information
 
 	gasLimit, err := rpctypes.BlockMaxGasFromConsensusParams(ctx, b.clientCtx, block.Height)
@@ -411,14 +416,18 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	}
 
 	var gasUsed uint64
+	var gasUsedByTxs []uint64
+	for _, txResult := range blockRes.TxsResults {
+		gasUsedByTx := uint64(txResult.GetGasUsed()) // #nosec G701 -- checked for int overflow already
 
-	for _, txsResult := range blockRes.TxsResults {
 		// workaround for cosmos-sdk bug. https://github.com/cosmos/cosmos-sdk/issues/10832
-		if ShouldIgnoreGasUsed(txsResult) {
+		if ShouldIgnoreGasUsed(txResult) {
 			// block gas limit has exceeded, other txs must have failed with same reason.
-			break
+			gasUsedByTx = 0
 		}
-		gasUsed += uint64(txsResult.GetGasUsed()) // #nosec G701 -- checked for int overflow already
+
+		gasUsed += gasUsedByTx
+		gasUsedByTxs = append(gasUsedByTxs, gasUsedByTx)
 	}
 
 	baseFee, err := b.BaseFee(blockRes)
@@ -433,11 +442,53 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	ethMsgs := b.EthMsgsFromTendermintBlock(resBlock, blockRes)
 
 	var transactions ethtypes.Transactions
-	for _, ethMsg := range ethMsgs {
-		transactions = append(transactions, ethMsg.AsTransaction())
+	var receipts ethtypes.Receipts
+	for transactionIndex, ethMsg := range ethMsgs {
+		transaction := ethMsg.AsTransaction()
+
+		transactions = append(transactions, transaction)
+
+		indexedTxByHash, err := b.GetTxByEthHash(transaction.Hash())
+		if err != nil {
+			return nil, err
+		}
+
+		var cumulativeGasUsed uint64
+		for _, gasUsedByTx := range gasUsedByTxs[0:indexedTxByHash.TxIndex] { // previous txs
+			cumulativeGasUsed += gasUsedByTx
+		}
+		cumulativeGasUsed += indexedTxByHash.CumulativeGasUsed
+
+		logs, err := TxLogsFromEvents(blockRes.TxsResults[indexedTxByHash.TxIndex].Events, int(indexedTxByHash.MsgIndex))
+		if err != nil {
+			// TODO ES return error
+			b.logger.Debug("failed to parse logs", "hash", transaction.Hash().Hex(), "error", err.Error())
+		}
+
+		txData, err := evmtypes.UnpackTxData(ethMsg.Data)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to unpack tx data")
+		}
+
+		receipt, err := rpctypes.NewRPCReceipt(
+			ethMsg,
+			hexutil.Uint64(transactionIndex),
+			!indexedTxByHash.Failed,
+			hexutil.Uint64(b.GetGasUsed(indexedTxByHash, txData.GetGasPrice(), txData.GetGas())),
+			hexutil.Uint64(cumulativeGasUsed),
+			baseFee,
+			logs,
+			common.BytesToHash(resBlock.BlockID.Hash.Bytes()),
+			hexutil.Uint64(indexedTxByHash.Height),
+			chainID.ToInt(),
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create transaction receipt")
+		}
+		receipts = append(receipts, receipt.AsEthReceipt())
 	}
 
-	// prepare bloom information
+	// prepare block-bloom information
 
 	bloom, err := b.BlockBloom(blockRes)
 	if err != nil {
@@ -453,7 +504,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 		block.Size(),
 		gasLimit, new(big.Int).SetUint64(gasUsed), baseFee,
 		transactions, fullTx,
-		nil,
+		receipts,
 		bloom,
 		validatorAddr,
 		b.logger,
