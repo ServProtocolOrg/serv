@@ -16,7 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pkg/errors"
 )
 
@@ -127,13 +126,17 @@ func (b *Backend) getTransactionByHashPending(txHash common.Hash) (*rpctypes.RPC
 
 // GetGasUsed returns gasUsed from transaction
 func (b *Backend) GetGasUsed(res *types.TxResult, price *big.Int, gas uint64) uint64 {
+	return b.getGasUsed(!res.Failed, res.Height, price, gas, res.GasUsed)
+}
+
+func (b *Backend) getGasUsed(success bool, height int64, price *big.Int, gas, recordedGasUsed uint64) uint64 {
 	// patch gasUsed if tx is reverted and happened before height on which fixed was introduced
 	// to return real gas charged
 	// more info at https://github.com/evmos/ethermint/pull/1557
-	if res.Failed && res.Height < b.cfg.JSONRPC.FixRevertGasRefundHeight {
+	if !success && height < b.cfg.JSONRPC.FixRevertGasRefundHeight {
 		return new(big.Int).Mul(price, new(big.Int).SetUint64(gas)).Uint64()
 	}
-	return res.GasUsed
+	return recordedGasUsed
 }
 
 // GetTransactionReceipt returns the transaction receipt identified by hash.
@@ -146,16 +149,19 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		b.logger.Debug("tx not found", "hash", hexTx, "error", err.Error())
 		return nil, nil
 	}
+
 	resBlock, err := b.TendermintBlockByNumber(rpctypes.BlockNumber(res.Height))
 	if err != nil {
 		b.logger.Debug("block not found", "height", res.Height, "error", err.Error())
 		return nil, nil
 	}
+
 	tx, err := b.clientCtx.TxConfig.TxDecoder()(resBlock.Block.Txs[res.TxIndex])
 	if err != nil {
 		b.logger.Debug("decoding failed", "error", err.Error())
 		return nil, fmt.Errorf("failed to decode tx: %w", err)
 	}
+
 	ethMsg := tx.GetMsgs()[res.MsgIndex].(*evmtypes.MsgEthereumTx)
 
 	txData, err := evmtypes.UnpackTxData(ethMsg.Data)
@@ -175,18 +181,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 	}
 	cumulativeGasUsed += res.CumulativeGasUsed
 
-	var status hexutil.Uint
-	if res.Failed {
-		status = hexutil.Uint(ethtypes.ReceiptStatusFailed)
-	} else {
-		status = hexutil.Uint(ethtypes.ReceiptStatusSuccessful)
-	}
 	chainID, err := b.ChainID()
-	if err != nil {
-		return nil, err
-	}
-
-	from, err := ethMsg.GetSender(chainID.ToInt())
 	if err != nil {
 		return nil, err
 	}
@@ -195,6 +190,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 	msgIndex := int(res.MsgIndex) // #nosec G701 -- checked for int overflow already
 	logs, err := TxLogsFromEvents(blockRes.TxsResults[res.TxIndex].Events, msgIndex)
 	if err != nil {
+		// TODO ES return error
 		b.logger.Debug("failed to parse logs", "hash", hexTx, "error", err.Error())
 	}
 
@@ -213,45 +209,29 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		return nil, errors.New("can't find index of ethereum tx")
 	}
 
-	if logs == nil {
-		logs = []*ethtypes.Log{}
-	}
-
-	var rpcReceipt rpctypes.RPCReceipt
-	rpcReceipt = rpctypes.RPCReceipt{
-		Status:            status,
-		CumulativeGasUsed: hexutil.Uint64(cumulativeGasUsed),
-		Bloom:             ethtypes.BytesToBloom(ethtypes.LogsBloom(logs)),
-		Logs:              logs,
-		TransactionHash:   hash,
-		ContractAddress:   nil,
-		GasUsed:           hexutil.Uint64(b.GetGasUsed(res, txData.GetGasPrice(), txData.GetGas())),
-		BlockHash:         common.BytesToHash(resBlock.BlockID.Hash.Bytes()),
-		BlockNumber:       hexutil.Uint64(res.Height),
-		TransactionIndex:  hexutil.Uint64(res.EthTxIndex),
-		Type:              hexutil.Uint(ethMsg.AsTransaction().Type()),
-		From:              from,
-		To:                txData.GetTo(),
-		EffectiveGasPrice: nil,
-	}
-
-	if rpcReceipt.To == nil {
-		newContractAddress := crypto.CreateAddress(from, txData.GetNonce())
-		rpcReceipt.ContractAddress = &newContractAddress
-	}
-
-	if dynamicTx, ok := txData.(*evmtypes.DynamicFeeTx); ok {
-		baseFee, err := b.BaseFee(blockRes)
+	var baseFee *big.Int
+	if ethMsg.AsTransaction().Type() == uint8(ethtypes.DynamicFeeTxType) {
+		baseFee, err = b.BaseFee(blockRes)
 		if err != nil {
+			// TODO ES return error
+			// TODO ES in NewRPCReceipt, remove condition check base fee is nil
 			// tolerate the error for pruned node.
 			b.logger.Error("fetch basefee failed, node is pruned?", "height", res.Height, "error", err)
-		} else {
-			effectiveGasPrice := hexutil.Big(*dynamicTx.EffectiveGasPrice(baseFee))
-			rpcReceipt.EffectiveGasPrice = &effectiveGasPrice
 		}
 	}
 
-	return &rpcReceipt, nil
+	return rpctypes.NewRPCReceipt(
+		ethMsg,
+		hexutil.Uint64(res.EthTxIndex),
+		!res.Failed,
+		hexutil.Uint64(b.GetGasUsed(res, txData.GetGasPrice(), txData.GetGas())),
+		hexutil.Uint64(cumulativeGasUsed),
+		baseFee,
+		logs,
+		common.BytesToHash(resBlock.BlockID.Hash.Bytes()),
+		hexutil.Uint64(res.Height),
+		chainID.ToInt(),
+	)
 }
 
 // GetTransactionByBlockHashAndIndex returns the transaction identified by hash and index.
