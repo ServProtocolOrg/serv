@@ -69,9 +69,9 @@ servnode convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 ## Hardware Requirements
 
 ### Minimum:
-* 16 GB RAM
-* 100 GB SSD
-* 3.2 GHz x4 CPU
+* 8 GB RAM
+* 100 GB SSD (Must Enable Prunning)
+* 2.4+ GHz x4 CPU
 
 ### Recommended:
 * 32 GB RAM
