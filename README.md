@@ -4,7 +4,7 @@ parent:
 -->
 
 <div align="center">
-  <h1>serv</h1>
+  <h1>SERV Protocol's serv codebase</h1>
 </div>
 
 <div align="center">
