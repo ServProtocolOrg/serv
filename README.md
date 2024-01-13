@@ -17,7 +17,7 @@ parent:
   </a>
 </div>
 
-### SERV Protocol's Serv is a customized EVM-enabled blockchain network
+### SERV Protocol's serv is a customized EVM-enabled blockchain network
 
 ### About SERV's serv codebase
 
