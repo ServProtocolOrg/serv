@@ -329,6 +329,27 @@ func (suite *EthRpcTestSuite) Test_GetTransactionCount() {
 }
 
 func (suite *EthRpcTestSuite) Test_GetTransactionReceipt() {
+	assertReceiptFields := func(receipt *rpctypes.RPCReceipt) {
+		if receipt == nil {
+			return
+		}
+
+		bz, err := json.Marshal(receipt)
+		suite.Require().NoError(err)
+
+		var mapper map[string]interface{}
+		err = json.Unmarshal(bz, &mapper)
+		suite.Require().NoError(err)
+
+		logs, found := mapper["logs"]
+		if suite.True(found, "expected logs always available regardless empty or not") {
+			arr, ok := logs.([]interface{})
+			if suite.True(ok) {
+				suite.Equal(len(receipt.Logs), len(arr))
+			}
+		}
+	}
+
 	suite.Run("basic", func() {
 		sender := suite.CITS.WalletAccounts.Number(1)
 		receiver := suite.CITS.WalletAccounts.Number(2)
@@ -350,6 +371,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionReceipt() {
 		gotReceipt, err := suite.GetEthPublicAPI().GetTransactionReceipt(sentTxHash)
 		suite.Require().NoError(err)
 		suite.Require().NotNil(gotReceipt)
+		assertReceiptFields(gotReceipt)
 
 		bzReceipt, err := json.Marshal(gotReceipt)
 		suite.Require().NoError(err)
@@ -431,6 +453,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionReceipt() {
 			gotReceipt, err := suite.GetEthPublicAPI().GetTransactionReceipt(sentTxHash)
 			suite.Require().NoError(err)
 			suite.Require().NotNil(gotReceipt)
+			assertReceiptFields(gotReceipt)
 
 			bzReceipt, err := json.Marshal(gotReceipt)
 			suite.Require().NoError(err)
@@ -459,6 +482,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionReceipt() {
 
 		bzReceipt, err := json.Marshal(gotReceipt)
 		suite.Require().NoError(err)
+		assertReceiptFields(gotReceipt)
 
 		var receipt ethtypes.Receipt
 		err = json.Unmarshal(bzReceipt, &receipt)
@@ -480,6 +504,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionReceipt() {
 		gotReceipt, err := suite.GetEthPublicAPI().GetTransactionReceipt(sentTxHash)
 		suite.Require().NoError(err)
 		suite.Require().NotNil(gotReceipt)
+		assertReceiptFields(gotReceipt)
 
 		bzReceipt, err := json.Marshal(gotReceipt)
 		suite.Require().NoError(err)
