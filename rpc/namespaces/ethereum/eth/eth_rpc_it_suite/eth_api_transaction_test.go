@@ -365,16 +365,16 @@ func (suite *EthRpcTestSuite) Test_GetTransactionReceipt() {
 		}
 		suite.Empty(receipt.Logs)
 		suite.Equal(sentTxHash, receipt.TxHash)
-		suite.Nil(gotReceipt["contractAddress"])
+		suite.Nil(gotReceipt.ContractAddress)
 		suite.Greater(receipt.GasUsed, uint64(0))
 		suite.Equal(*gotTx.BlockHash, receipt.BlockHash)
 		suite.Equal(gotTx.BlockNumber.ToInt().Int64(), receipt.BlockNumber.Int64())
 		suite.Equal(uint(*gotTx.TransactionIndex), receipt.TransactionIndex)
-		if suite.NotNil(gotReceipt["from"]) {
-			suite.Equal(sender.GetEthAddress(), gotReceipt["from"].(common.Address))
+		if suite.NotNil(gotReceipt.From) {
+			suite.Equal(sender.GetEthAddress(), gotReceipt.From)
 		}
-		if suite.NotNil(gotReceipt["to"]) {
-			suite.Equal(receiver.GetEthAddress(), *(gotReceipt["to"].(*common.Address)))
+		if suite.NotNil(gotReceipt.To) {
+			suite.Equal(receiver.GetEthAddress(), *(gotReceipt.To))
 		}
 		suite.Equal(sentEvmTx.AsTransaction().Type(), receipt.Type)
 	})

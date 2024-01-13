@@ -554,7 +554,7 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 		tx           *evmtypes.MsgEthereumTx
 		block        *types.Block
 		blockResult  []*abci.ResponseDeliverTx
-		expTxReceipt map[string]interface{}
+		expTxReceipt *rpctypes.RPCReceipt
 		expPass      bool
 	}{
 		{
@@ -587,7 +587,7 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 					},
 				},
 			},
-			map[string]interface{}(nil),
+			(*rpctypes.RPCReceipt)(nil),
 			false,
 		},
 	}
@@ -605,9 +605,9 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 			txReceipt, err := suite.backend.GetTransactionReceipt(common.HexToHash(tc.tx.Hash))
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(txReceipt, tc.expTxReceipt)
+				suite.Equal(tc.expTxReceipt, txReceipt)
 			} else {
-				suite.Require().NotEqual(txReceipt, tc.expTxReceipt)
+				suite.NotEqual(tc.expTxReceipt, txReceipt)
 			}
 		})
 	}
