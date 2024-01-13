@@ -134,31 +134,20 @@ func (suite *BackendTestSuite) buildFormattedBlock(
 	receipt := ethtypes.NewReceipt(root, false, gasUsed.Uint64())
 	bloom := ethtypes.CreateBloom(ethtypes.Receipts{receipt})
 
-	ethRPCTxs := []interface{}{}
+	var transactions ethtypes.Transactions
 	if tx != nil {
-		if fullTx {
-			rpcTx, err := rpctypes.NewRPCTransaction(
-				tx.AsTransaction(),
-				common.BytesToHash(header.Hash()),
-				uint64(header.Height),
-				uint64(0),
-				baseFee,
-				suite.backend.chainID,
-			)
-			suite.Require().NoError(err)
-			ethRPCTxs = []interface{}{rpcTx}
-		} else {
-			ethRPCTxs = []interface{}{common.HexToHash(tx.Hash)}
-		}
+		transactions = append(transactions, tx.AsTransaction())
 	}
 
 	return rpctypes.FormatBlock(
 		header,
+		suite.backend.chainID,
 		resBlock.Block.Size(),
 		gasLimit, gasUsed, baseFee,
-		ethRPCTxs,
+		transactions, fullTx,
 		bloom,
 		common.BytesToAddress(validator.Bytes()),
+		suite.backend.logger,
 	)
 }
 

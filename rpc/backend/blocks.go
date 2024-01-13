@@ -370,7 +370,6 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	blockRes *tmrpctypes.ResultBlockResults,
 	fullTx bool,
 ) (map[string]interface{}, error) {
-	ethRPCTxs := []interface{}{}
 	block := resBlock.Block
 
 	baseFee, err := b.BaseFee(blockRes)
@@ -380,29 +379,10 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	}
 
 	msgs := b.EthMsgsFromTendermintBlock(resBlock, blockRes)
-	for txIndex, ethMsg := range msgs {
-		if !fullTx {
-			hash := common.HexToHash(ethMsg.Hash)
-			ethRPCTxs = append(ethRPCTxs, hash)
-			continue
-		}
 
-		tx := ethMsg.AsTransaction()
-		height := uint64(block.Height) //#nosec G701 -- checked for int overflow already
-		index := uint64(txIndex)       //#nosec G701 -- checked for int overflow already
-		rpcTx, err := rpctypes.NewRPCTransaction(
-			tx,
-			common.BytesToHash(block.Hash()),
-			height,
-			index,
-			baseFee,
-			b.chainID,
-		)
-		if err != nil {
-			b.logger.Debug("NewTransactionFromData for receipt failed", "hash", tx.Hash().Hex(), "error", err.Error())
-			continue
-		}
-		ethRPCTxs = append(ethRPCTxs, rpcTx)
+	var transactions ethtypes.Transactions
+	for _, ethMsg := range msgs {
+		transactions = append(transactions, ethMsg.AsTransaction())
 	}
 
 	bloom, err := b.BlockBloom(blockRes)
@@ -454,11 +434,13 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 	formattedBlock := rpctypes.FormatBlock(
 		block.Header,
+		b.chainID,
 		block.Size(),
 		gasLimit, new(big.Int).SetUint64(gasUsed), baseFee,
-		ethRPCTxs,
+		transactions, fullTx,
 		bloom,
 		validatorAddr,
+		b.logger,
 	)
 	return formattedBlock, nil
 }

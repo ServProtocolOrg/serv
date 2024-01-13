@@ -2,6 +2,7 @@ package backend
 
 import (
 	"fmt"
+	"github.com/cometbft/cometbft/libs/log"
 	"math/big"
 
 	"cosmossdk.io/math"
@@ -1091,32 +1092,21 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			receipt := ethtypes.NewReceipt(root, false, gasUsed.Uint64())
 			bloom := ethtypes.CreateBloom(ethtypes.Receipts{receipt})
 
-			ethRPCTxs := []interface{}{}
+			var transactions ethtypes.Transactions
 
 			if tc.expTxs {
-				if tc.fullTx {
-					rpcTx, err := ethrpc.NewRPCTransaction(
-						msgEthereumTx.AsTransaction(),
-						common.BytesToHash(header.Hash()),
-						uint64(header.Height),
-						uint64(0),
-						tc.baseFee,
-						suite.backend.chainID,
-					)
-					suite.Require().NoError(err)
-					ethRPCTxs = []interface{}{rpcTx}
-				} else {
-					ethRPCTxs = []interface{}{common.HexToHash(msgEthereumTx.Hash)}
-				}
+				transactions = append(transactions, msgEthereumTx.AsTransaction())
 			}
 
 			expBlock = ethrpc.FormatBlock(
 				header,
+				suite.backend.chainID,
 				tc.resBlock.Block.Size(),
 				gasLimit, gasUsed, tc.baseFee,
-				ethRPCTxs,
+				transactions, tc.fullTx,
 				bloom,
 				common.BytesToAddress(tc.validator.Bytes()),
+				log.NewNopLogger(),
 			)
 
 			if tc.expPass {

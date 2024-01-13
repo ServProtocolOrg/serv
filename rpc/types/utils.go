@@ -3,7 +3,9 @@ package types
 import (
 	"context"
 	"fmt"
+	"github.com/cometbft/cometbft/libs/log"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
+	"github.com/ethereum/go-ethereum/trie"
 	"math/big"
 	"strings"
 
@@ -103,17 +105,46 @@ func BlockMaxGasFromConsensusParams(goCtx context.Context, clientCtx client.Cont
 // transactions.
 func FormatBlock(
 	header tmtypes.Header,
+	chainID *big.Int,
 	size int,
 	gasLimit int64, gasUsed *big.Int, baseFee *big.Int,
-	transactions []interface{},
+	transactions ethtypes.Transactions, fullTx bool,
 	bloom ethtypes.Bloom,
 	validatorAddr common.Address,
+	logger log.Logger,
 ) map[string]interface{} {
 	var transactionsRoot common.Hash
 	if len(transactions) == 0 {
 		transactionsRoot = ethtypes.EmptyRootHash
 	} else {
-		transactionsRoot = common.BytesToHash(header.DataHash)
+		transactionsRoot = ethtypes.DeriveSha(transactions, trie.NewStackTrie(nil))
+	}
+
+	var txsList []interface{}
+
+	for txIndex, tx := range transactions {
+		if !fullTx {
+			txsList = append(txsList, tx.Hash())
+			continue
+		}
+
+		height := uint64(header.Height) //#nosec G701 -- checked for int overflow already
+		index := uint64(txIndex)        //#nosec G701 -- checked for int overflow already
+		
+		rpcTx, err := NewRPCTransaction(
+			tx,
+			common.BytesToHash(header.Hash()),
+			height,
+			index,
+			baseFee,
+			chainID,
+		)
+		if err != nil {
+			logger.Error("NewRPCTransaction failed", "hash", tx.Hash().Hex(), "error", err.Error())
+			continue
+		}
+
+		txsList = append(txsList, rpcTx)
 	}
 
 	result := map[string]interface{}{
@@ -136,7 +167,7 @@ func FormatBlock(
 		"receiptsRoot":     ethtypes.EmptyRootHash,
 
 		"uncles":          []common.Hash{},
-		"transactions":    transactions,
+		"transactions":    txsList,
 		"totalDifficulty": (*hexutil.Big)(big.NewInt(0)),
 	}
 
