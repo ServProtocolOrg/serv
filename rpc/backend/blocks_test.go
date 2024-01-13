@@ -1113,12 +1113,10 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			expBlock = ethrpc.FormatBlock(
 				header,
 				tc.resBlock.Block.Size(),
-				gasLimit,
-				gasUsed,
+				gasLimit, gasUsed, tc.baseFee,
 				ethRPCTxs,
 				bloom,
 				common.BytesToAddress(tc.validator.Bytes()),
-				tc.baseFee,
 			)
 
 			if tc.expPass {

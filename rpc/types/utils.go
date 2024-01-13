@@ -102,9 +102,12 @@ func BlockMaxGasFromConsensusParams(goCtx context.Context, clientCtx client.Cont
 // FormatBlock creates an ethereum block from a tendermint header and ethereum-formatted
 // transactions.
 func FormatBlock(
-	header tmtypes.Header, size int, gasLimit int64,
-	gasUsed *big.Int, transactions []interface{}, bloom ethtypes.Bloom,
-	validatorAddr common.Address, baseFee *big.Int,
+	header tmtypes.Header,
+	size int,
+	gasLimit int64, gasUsed *big.Int, baseFee *big.Int,
+	transactions []interface{},
+	bloom ethtypes.Bloom,
+	validatorAddr common.Address,
 ) map[string]interface{} {
 	var transactionsRoot common.Hash
 	if len(transactions) == 0 {

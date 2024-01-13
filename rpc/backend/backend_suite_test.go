@@ -155,12 +155,10 @@ func (suite *BackendTestSuite) buildFormattedBlock(
 	return rpctypes.FormatBlock(
 		header,
 		resBlock.Block.Size(),
-		gasLimit,
-		gasUsed,
+		gasLimit, gasUsed, baseFee,
 		ethRPCTxs,
 		bloom,
 		common.BytesToAddress(validator.Bytes()),
-		baseFee,
 	)
 }
 

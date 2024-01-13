@@ -453,9 +453,12 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	}
 
 	formattedBlock := rpctypes.FormatBlock(
-		block.Header, block.Size(),
-		gasLimit, new(big.Int).SetUint64(gasUsed),
-		ethRPCTxs, bloom, validatorAddr, baseFee,
+		block.Header,
+		block.Size(),
+		gasLimit, new(big.Int).SetUint64(gasUsed), baseFee,
+		ethRPCTxs,
+		bloom,
+		validatorAddr,
 	)
 	return formattedBlock, nil
 }
