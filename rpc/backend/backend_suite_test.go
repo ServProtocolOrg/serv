@@ -180,3 +180,22 @@ func (suite *BackendTestSuite) signAndEncodeEthTx(msgEthereumTx *evmtypes.MsgEth
 
 	return txBz
 }
+
+func (suite *BackendTestSuite) signMsgEthTx(msgEthereumTx *evmtypes.MsgEthereumTx) (*evmtypes.MsgEthereumTx, []byte) {
+	queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+	RegisterParamsWithoutHeader(queryClient, 1)
+
+	ethSigner := ethtypes.LatestSigner(suite.backend.ChainConfig())
+	msgEthereumTx.From = suite.from.String()
+	err := msgEthereumTx.Sign(ethSigner, suite.signer)
+	suite.Require().NoError(err)
+
+	tx, err := msgEthereumTx.BuildTx(suite.backend.clientCtx.TxConfig.NewTxBuilder(), constants.BaseDenom)
+	suite.Require().NoError(err)
+
+	txEncoder := suite.backend.clientCtx.TxConfig.TxEncoder()
+	txBz, err := txEncoder(tx)
+	suite.Require().NoError(err)
+
+	return msgEthereumTx, txBz
+}

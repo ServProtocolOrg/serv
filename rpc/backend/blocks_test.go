@@ -86,7 +86,8 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 		blockRes *tmrpctypes.ResultBlockResults
 		resBlock *tmrpctypes.ResultBlock
 	)
-	msgEthereumTx, bz := suite.buildEthereumTx()
+	msgEthereumTx, _ := suite.buildEthereumTx()
+	msgEthereumTx, bz := suite.signMsgEthTx(msgEthereumTx)
 
 	testCases := []struct {
 		name         string
@@ -167,6 +168,10 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
 			},
 			false,
 			true,
@@ -189,6 +194,13 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			false,
 			true,
@@ -229,7 +241,8 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 		blockRes *tmrpctypes.ResultBlockResults
 		resBlock *tmrpctypes.ResultBlock
 	)
-	msgEthereumTx, bz := suite.buildEthereumTx()
+	msgEthereumTx, _ := suite.buildEthereumTx()
+	msgEthereumTx, bz := suite.signMsgEthTx(msgEthereumTx)
 
 	block := tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil)
 
@@ -312,6 +325,10 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
 			},
 			false,
 			true,
@@ -335,6 +352,13 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			false,
 			true,
@@ -888,7 +912,8 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 }
 
 func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
-	msgEthereumTx, bz := suite.buildEthereumTx()
+	msgEthereumTx, _ := suite.buildEthereumTx()
+	msgEthereumTx, bz := suite.signMsgEthTx(msgEthereumTx)
 	emptyBlock := tmtypes.MakeBlock(1, []tmtypes.Tx{}, nil, nil)
 
 	testCases := []struct {
@@ -921,6 +946,10 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
 			},
 			false,
 			true,
@@ -945,6 +974,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			true,
 			true,
@@ -969,6 +1005,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			true,
 			true,
@@ -993,6 +1036,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParamsError(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			true,
 			true,
@@ -1023,6 +1073,10 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
 			},
 			false,
 			true,
@@ -1047,6 +1101,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			true,
 			true,
@@ -1071,6 +1132,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			true,
 			true,
@@ -1111,8 +1179,8 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			)
 
 			if tc.expPass {
-				suite.Require().Equal(expBlock, block)
 				suite.Require().NoError(err)
+				suite.Equal(expBlock, block)
 			} else {
 				suite.Require().Error(err)
 			}
