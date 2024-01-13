@@ -63,6 +63,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (ante) [#59](https://github.com/EscanBE/evermint/pull/59) Prevent panic when building error message of fee which overflow int64
 - (swagger) [#66](https://github.com/EscanBE/evermint/pull/66) Correct script gen swagger after switched to use vanilla Cosmos-SDK
 - (rename-chain) [#80](https://github.com/EscanBE/evermint/pull/80) Handle new cases of rename-chain with recent changes
+- (rpc) [#85](https://github.com/EscanBE/evermint/pull/85) Compute and return correct `transactionsRoot` and `receiptsRoot` hashes
 
 ### Client Breaking
 

@@ -339,7 +339,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		suite.Equal("0x0000000000000000", textResultStruct.Nonce, "nonce must be zero since PoS chain does not have this")
 		suite.Equal(fmt.Sprintf("0x%x", testBlockHeight), textResultStruct.Number)
 		suite.Equal("0x"+hex.EncodeToString(previousBlockResult.Block.Hash()), textResultStruct.ParentHash, "parentHash must be previous Tendermint block hash")
-		suite.Equal(func() string { // TODO ES fix the RPC to return correct receipt root
+		suite.Equal(func() string {
 			var receipts ethtypes.Receipts
 			for _, tx := range textResultStruct.Transactions {
 				var transaction *ethtypes.Transaction
@@ -365,7 +365,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		suite.Equal(fmt.Sprintf("0x%x", blockResult.Block.Time.UTC().Unix()), textResultStruct.Timestamp, "timestamp must be block UTC epoch seconds")
 		suite.Equal("0x0", textResultStruct.TotalDifficulty, "total difficulty must be zero since PoS chain does not have this")
 		suite.Len(textResultStruct.Transactions, evmTxsCount, "transaction list must be same as sent EVM txs")
-		suite.Equal(func() string { // TODO ES fix the RPC to return correct transaction root
+		suite.Equal(func() string {
 			var transactions ethtypes.Transactions
 			for _, tx := range textResultStruct.Transactions {
 				var transaction *ethtypes.Transaction

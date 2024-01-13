@@ -1,3 +1,5 @@
+//go:generate mockery --name EVMTxIndexer
+
 package types
 
 import (

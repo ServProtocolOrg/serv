@@ -281,7 +281,8 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockHashAndIndex() {
 }
 
 func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
-	msgEthTx, bz := suite.buildEthereumTx()
+	msgEthTx, _ := suite.buildEthereumTx()
+	msgEthTx, bz := suite.signMsgEthTx(msgEthTx)
 
 	defaultBlock := types.MakeBlock(1, []types.Tx{bz}, nil, nil)
 	defaultResponseDeliverTx := []*abci.ResponseDeliverTx{
@@ -322,6 +323,9 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByBlockAndIndexError(indexer, 1, 1)
 			},
 			&tmrpctypes.ResultBlock{Block: types.MakeBlock(1, []types.Tx{bz}, nil, nil)},
 			1,
@@ -336,6 +340,9 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				_, err := RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
 				RegisterBaseFeeError(queryClient)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByBlockAndIndex(indexer, 1, 0)
 			},
 			&tmrpctypes.ResultBlock{Block: defaultBlock},
 			0,
@@ -370,6 +377,9 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				_, err := RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, sdk.NewInt(1))
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByBlockAndIndex(indexer, 1, 0)
 			},
 			&tmrpctypes.ResultBlock{Block: defaultBlock},
 			0,
@@ -435,6 +445,9 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockNumberAndIndex() {
 				_, err = RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, sdk.NewInt(1))
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByBlockAndIndex(indexer, 1, 0)
 			},
 			0,
 			0,
@@ -554,7 +567,7 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 		tx           *evmtypes.MsgEthereumTx
 		block        *types.Block
 		blockResult  []*abci.ResponseDeliverTx
-		expTxReceipt map[string]interface{}
+		expTxReceipt *rpctypes.RPCReceipt
 		expPass      bool
 	}{
 		{
@@ -587,7 +600,7 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 					},
 				},
 			},
-			map[string]interface{}(nil),
+			(*rpctypes.RPCReceipt)(nil),
 			false,
 		},
 	}
@@ -605,9 +618,9 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 			txReceipt, err := suite.backend.GetTransactionReceipt(common.HexToHash(tc.tx.Hash))
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(txReceipt, tc.expTxReceipt)
+				suite.Equal(tc.expTxReceipt, txReceipt)
 			} else {
-				suite.Require().NotEqual(txReceipt, tc.expTxReceipt)
+				suite.NotEqual(tc.expTxReceipt, txReceipt)
 			}
 		})
 	}

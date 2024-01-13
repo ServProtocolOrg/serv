@@ -87,6 +87,7 @@ func (suite *BackendTestSuite) SetupTest() {
 	suite.backend.clientCtx.Client = mocks.NewClient(suite.T())
 	suite.backend.queryClient.FeeMarket = mocks.NewFeeMarketQueryClient(suite.T())
 	suite.backend.ctx = rpctypes.ContextWithHeight(1)
+	suite.backend.indexer = mocks.NewEVMTxIndexer(suite.T())
 
 	// Add codec
 	encCfg := encoding.MakeConfig(app.ModuleBasics)
@@ -130,38 +131,53 @@ func (suite *BackendTestSuite) buildFormattedBlock(
 	gasLimit := int64(^uint32(0)) // for `MaxGas = -1` (DefaultConsensusParams)
 	gasUsed := new(big.Int).SetUint64(uint64(blockRes.TxsResults[0].GasUsed))
 
-	root := common.Hash{}.Bytes()
-	receipt := ethtypes.NewReceipt(root, false, gasUsed.Uint64())
-	bloom := ethtypes.CreateBloom(ethtypes.Receipts{receipt})
-
-	ethRPCTxs := []interface{}{}
+	var transactions ethtypes.Transactions
+	var receipts ethtypes.Receipts
 	if tx != nil {
-		if fullTx {
-			rpcTx, err := rpctypes.NewRPCTransaction(
-				tx.AsTransaction(),
-				common.BytesToHash(header.Hash()),
-				uint64(header.Height),
-				uint64(0),
-				baseFee,
-				suite.backend.chainID,
-			)
-			suite.Require().NoError(err)
-			ethRPCTxs = []interface{}{rpcTx}
-		} else {
-			ethRPCTxs = []interface{}{common.HexToHash(tx.Hash)}
-		}
+		transactions = append(transactions, tx.AsTransaction())
+		receipt := createTestReceipt(nil, resBlock, tx, false, mockGasUsed)
+		receipts = append(receipts, receipt)
 	}
+
+	bloom := ethtypes.CreateBloom(receipts)
 
 	return rpctypes.FormatBlock(
 		header,
+		suite.backend.chainID,
 		resBlock.Block.Size(),
-		gasLimit,
-		gasUsed,
-		ethRPCTxs,
+		gasLimit, gasUsed, baseFee,
+		transactions, fullTx,
+		receipts,
 		bloom,
 		common.BytesToAddress(validator.Bytes()),
-		baseFee,
+		suite.backend.logger,
 	)
+}
+
+func createTestReceipt(root []byte, resBlock *tmrpctypes.ResultBlock, tx *evmtypes.MsgEthereumTx, failed bool, gasUsed uint64) *ethtypes.Receipt {
+	var status uint64
+	if failed {
+		status = ethtypes.ReceiptStatusFailed
+	} else {
+		status = ethtypes.ReceiptStatusSuccessful
+	}
+
+	transaction := tx.AsTransaction()
+
+	return &ethtypes.Receipt{
+		Type:              transaction.Type(),
+		PostState:         root,
+		Status:            status,
+		CumulativeGasUsed: gasUsed,
+		Bloom:             ethtypes.BytesToBloom(ethtypes.LogsBloom([]*ethtypes.Log{})),
+		Logs:              []*ethtypes.Log{},
+		TxHash:            transaction.Hash(),
+		ContractAddress:   common.Address{},
+		GasUsed:           gasUsed,
+		BlockHash:         common.HexToHash(resBlock.Block.Header.Hash().String()),
+		BlockNumber:       big.NewInt(resBlock.Block.Height),
+		TransactionIndex:  0,
+	}
 }
 
 func (suite *BackendTestSuite) generateTestKeyring(clientDir string) (keyring.Keyring, error) {
@@ -190,4 +206,23 @@ func (suite *BackendTestSuite) signAndEncodeEthTx(msgEthereumTx *evmtypes.MsgEth
 	suite.Require().NoError(err)
 
 	return txBz
+}
+
+func (suite *BackendTestSuite) signMsgEthTx(msgEthereumTx *evmtypes.MsgEthereumTx) (*evmtypes.MsgEthereumTx, []byte) {
+	queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+	RegisterParamsWithoutHeader(queryClient, 1)
+
+	ethSigner := ethtypes.LatestSigner(suite.backend.ChainConfig())
+	msgEthereumTx.From = suite.from.String()
+	err := msgEthereumTx.Sign(ethSigner, suite.signer)
+	suite.Require().NoError(err)
+
+	tx, err := msgEthereumTx.BuildTx(suite.backend.clientCtx.TxConfig.NewTxBuilder(), constants.BaseDenom)
+	suite.Require().NoError(err)
+
+	txEncoder := suite.backend.clientCtx.TxConfig.TxEncoder()
+	txBz, err := txEncoder(tx)
+	suite.Require().NoError(err)
+
+	return msgEthereumTx, txBz
 }

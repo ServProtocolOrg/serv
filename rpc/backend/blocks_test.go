@@ -2,6 +2,7 @@ package backend
 
 import (
 	"fmt"
+	"github.com/cometbft/cometbft/libs/log"
 	"math/big"
 
 	"cosmossdk.io/math"
@@ -85,7 +86,8 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 		blockRes *tmrpctypes.ResultBlockResults
 		resBlock *tmrpctypes.ResultBlock
 	)
-	msgEthereumTx, bz := suite.buildEthereumTx()
+	msgEthereumTx, _ := suite.buildEthereumTx()
+	msgEthereumTx, bz := suite.signMsgEthTx(msgEthereumTx)
 
 	testCases := []struct {
 		name         string
@@ -166,6 +168,10 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
 			},
 			false,
 			true,
@@ -188,6 +194,13 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			false,
 			true,
@@ -228,7 +241,8 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 		blockRes *tmrpctypes.ResultBlockResults
 		resBlock *tmrpctypes.ResultBlock
 	)
-	msgEthereumTx, bz := suite.buildEthereumTx()
+	msgEthereumTx, _ := suite.buildEthereumTx()
+	msgEthereumTx, bz := suite.signMsgEthTx(msgEthereumTx)
 
 	block := tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil)
 
@@ -311,6 +325,10 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
 			},
 			false,
 			true,
@@ -334,6 +352,13 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			false,
 			true,
@@ -887,7 +912,8 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 }
 
 func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
-	msgEthereumTx, bz := suite.buildEthereumTx()
+	msgEthereumTx, _ := suite.buildEthereumTx()
+	msgEthereumTx, bz := suite.signMsgEthTx(msgEthereumTx)
 	emptyBlock := tmtypes.MakeBlock(1, []tmtypes.Tx{}, nil, nil)
 
 	testCases := []struct {
@@ -920,6 +946,10 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
 			},
 			false,
 			true,
@@ -944,6 +974,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			true,
 			true,
@@ -968,6 +1005,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			true,
 			true,
@@ -992,6 +1036,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParamsError(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			true,
 			true,
@@ -1022,6 +1073,10 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
 			},
 			false,
 			true,
@@ -1046,6 +1101,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			true,
 			true,
@@ -1070,6 +1132,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
+
+				var header metadata.MD
+				RegisterParams(queryClient, &header, height)
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 			},
 			true,
 			true,
@@ -1087,43 +1156,32 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			gasLimit := int64(^uint32(0)) // for `MaxGas = -1` (DefaultConsensusParams)
 			gasUsed := new(big.Int).SetUint64(uint64(tc.blockRes.TxsResults[0].GasUsed))
 
-			root := common.Hash{}.Bytes()
-			receipt := ethtypes.NewReceipt(root, false, gasUsed.Uint64())
-			bloom := ethtypes.CreateBloom(ethtypes.Receipts{receipt})
-
-			ethRPCTxs := []interface{}{}
+			var transactions ethtypes.Transactions
+			var receipts ethtypes.Receipts
 
 			if tc.expTxs {
-				if tc.fullTx {
-					rpcTx, err := ethrpc.NewRPCTransaction(
-						msgEthereumTx.AsTransaction(),
-						common.BytesToHash(header.Hash()),
-						uint64(header.Height),
-						uint64(0),
-						tc.baseFee,
-						suite.backend.chainID,
-					)
-					suite.Require().NoError(err)
-					ethRPCTxs = []interface{}{rpcTx}
-				} else {
-					ethRPCTxs = []interface{}{common.HexToHash(msgEthereumTx.Hash)}
-				}
+				transactions = append(transactions, msgEthereumTx.AsTransaction())
+				receipt := createTestReceipt(nil, tc.resBlock, msgEthereumTx, false, mockGasUsed)
+				receipts = append(receipts, receipt)
 			}
+
+			bloom := ethtypes.CreateBloom(receipts)
 
 			expBlock = ethrpc.FormatBlock(
 				header,
+				suite.backend.chainID,
 				tc.resBlock.Block.Size(),
-				gasLimit,
-				gasUsed,
-				ethRPCTxs,
+				gasLimit, gasUsed, tc.baseFee,
+				transactions, tc.fullTx,
+				receipts,
 				bloom,
 				common.BytesToAddress(tc.validator.Bytes()),
-				tc.baseFee,
+				log.NewNopLogger(),
 			)
 
 			if tc.expPass {
-				suite.Require().Equal(expBlock, block)
 				suite.Require().NoError(err)
+				suite.Equal(expBlock, block)
 			} else {
 				suite.Require().Error(err)
 			}
