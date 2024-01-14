@@ -40,21 +40,6 @@ func DecodeTxResponse(in []byte) (*MsgEthereumTxResponse, error) {
 	return &res, nil
 }
 
-// EncodeTransactionLogs encodes TransactionLogs slice into a protobuf-encoded byte slice.
-func EncodeTransactionLogs(res *TransactionLogs) ([]byte, error) {
-	return proto.Marshal(res)
-}
-
-// DecodeTransactionLogs decodes an protobuf-encoded byte slice into TransactionLogs
-func DecodeTransactionLogs(data []byte) (TransactionLogs, error) {
-	var logs TransactionLogs
-	err := proto.Unmarshal(data, &logs)
-	if err != nil {
-		return TransactionLogs{}, err
-	}
-	return logs, nil
-}
-
 // UnwrapEthereumMsg extract MsgEthereumTx from wrapping sdk.Tx
 func UnwrapEthereumMsg(tx *sdk.Tx, ethHash common.Hash) (*MsgEthereumTx, error) {
 	if tx == nil {
