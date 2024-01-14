@@ -88,26 +88,72 @@ servnode convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 
 Install all dependencies:
 
-`sudo apt update
-sudo apt install snapd`
+`sudo apt-get update 
+sudo apt-get -y upgrade`
 
-`sudo snap install go --classic && sudo apt-get install git && sudo apt-get install gcc && sudo apt-get install make`
+Install via apt
+`sudo apt install build-essential git vim jq libleveldb-dev make gcc`
 
-Or install individually:
-
-* go1.20+: `sudo snap install go --classic`
+Or install via apt-get individually:
+* build-essential : `sudo apt-get install build-essential`
+* libleveldb-dev : `sudo apt-get install libleveldb-dev`
+* jq : `sudo apt-get install jq`
 * git: `sudo apt-get install git`
 * gcc: `sudo apt-get install gcc`
 * make: `sudo apt-get install make`
+* vim: `sudo apt-get install vim`
 
+[____
 **If using Arch Linux:**
-
-* go1.20+: `pacman -S go`
+* jq: `pacman -S jq`
 * git: `pacman -S git`
 * gcc: `pacman -S gcc`
 * make: `pacman -S make`
+* vim: `pacman -S vim`
+____]
 
-## Install `servnode`
+## Install Go
+
+If you have already installed go on this machine, remove it.
+`sudo rm -rf /usr/local/go`
+
+Download GO locally 
+`sudo wget https://go.dev/dl/go1.20.13.linux-amd64.tar.gz`
+
+Install GO locally
+`tar -C /usr/local -xzf go1.20.13.linux-amd64.tar.gz`
+
+## Setup Go Environment
+
+Create your validator's directories to compile, build and run from
+`mkdir -p $HOME/go/src -p $HOME/go/pkg -p $HOME/go/bin`
+Add usr/local Go bin and your Validators go/bin to .bashrc 
+`echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> $HOME/.bashrc`
+
+`echo "export GOPATH=$HOME/go" >> $HOME/.bashrc`
+
+Scroll the bottom of the file and add the following:
+`# golang
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/.go
+export GOBIN=$PATH:$GOPATH/bin:$GOROOT/bin`
+
+[____
+**Not required** but a helpful custom setting is adding custom flags for ls to get better details by default by adding the following to .bashrc as well:
+`# ls
+alias ls="ls -avhl --color=auto --group-directories-first"`
+____]
+
+save .bashrc
+`:wq`
+
+reload the .bashrc locally
+`source .bashrc`
+
+test it locally
+`echo $GOBIN`
+
+## Install servnode binaries
 
 ### Clone git repository
 
