@@ -30,7 +30,7 @@ const (
 
 var _ evertypes.EVMTxIndexer = &KVIndexer{}
 
-// KVIndexer implements a eth tx indexer on a KV db.
+// KVIndexer implements an ETH-Tx indexer on a KV db.
 type KVIndexer struct {
 	db        dbm.DB
 	logger    log.Logger
@@ -42,11 +42,14 @@ func NewKVIndexer(db dbm.DB, logger log.Logger, clientCtx client.Context) *KVInd
 	return &KVIndexer{db, logger, clientCtx}
 }
 
-// IndexBlock index all the eth txs in a block through the following steps:
-// - Iterates over all of the Txs in Block
+// IndexBlock indexes all ETH Txs of the block.
+// Notes: no guarantee data is flushed into database after this function returns, it might be flushed at later point.
+//
+// Steps:
+// - Iterates over all-of-the Txs in Block
 // - Parses eth Tx infos from cosmos-sdk events for every TxResult
 // - Iterates over all the messages of the Tx
-// - Builds and stores a indexer.TxResult based on parsed events for every message
+// - Builds and stores a `indexer.TxResult` based on parsed events for every message
 func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.ResponseDeliverTx) error {
 	height := block.Header.Height
 
@@ -121,7 +124,8 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 	return nil
 }
 
-// LastIndexedBlock returns the latest indexed block number, returns -1 if db is empty
+// LastIndexedBlock returns the last block number which was indexed and flushed into database.
+// Returns -1 if db is empty.
 func (kv *KVIndexer) LastIndexedBlock() (int64, error) {
 	return LoadLastBlock(kv.db)
 }
