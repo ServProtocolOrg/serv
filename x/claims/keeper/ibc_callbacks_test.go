@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
 	"github.com/servprotocolorg/serv/v12/constants"
-	"github.com/servprotocolorg/serv/v12/rename_chain/marker"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"

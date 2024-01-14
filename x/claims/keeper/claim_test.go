@@ -2,15 +2,12 @@ package keeper_test
 
 import (
 	"fmt"
-	"github.com/servprotocolorg/serv/v12/rename_chain/marker"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
 	"time"
 
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
 	"cosmossdk.io/math"
-	"github.com/servprotocolorg/serv/v12/crypto/ethsecp256k1"
-	"github.com/servprotocolorg/serv/v12/testutil"
-	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
-	evertypes "github.com/servprotocolorg/serv/v12/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -18,6 +15,10 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/servprotocolorg/serv/v12/crypto/ethsecp256k1"
+	"github.com/servprotocolorg/serv/v12/testutil"
+	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
+	evertypes "github.com/servprotocolorg/serv/v12/types"
 
 	"github.com/servprotocolorg/serv/v12/x/claims/types"
 )

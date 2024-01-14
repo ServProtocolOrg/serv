@@ -3,10 +3,12 @@ package keeper_test
 import (
 	"errors"
 	"fmt"
+
 	"github.com/servprotocolorg/serv/v12/constants"
-	"github.com/servprotocolorg/serv/v12/rename_chain/marker"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
 	"math/big"
+
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/servprotocolorg/serv/v12/x/erc20/keeper"
 
@@ -14,11 +16,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/servprotocolorg/serv/v12/crypto/ethsecp256k1"
-	"github.com/servprotocolorg/serv/v12/testutil"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/servprotocolorg/serv/v12/crypto/ethsecp256k1"
+	"github.com/servprotocolorg/serv/v12/testutil"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

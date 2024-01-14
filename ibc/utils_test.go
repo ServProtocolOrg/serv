@@ -2,7 +2,7 @@ package ibc
 
 import (
 	"github.com/servprotocolorg/serv/v12/constants"
-	"github.com/servprotocolorg/serv/v12/rename_chain/marker"
+
 	"testing"
 
 	"github.com/servprotocolorg/serv/v12/x/claims/types"
@@ -10,10 +10,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	teststypes "github.com/servprotocolorg/serv/v12/types/tests"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	teststypes "github.com/servprotocolorg/serv/v12/types/tests"
 )
 
 func init() {

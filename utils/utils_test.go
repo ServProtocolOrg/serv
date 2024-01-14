@@ -2,8 +2,9 @@ package utils
 
 import (
 	"fmt"
+
 	"github.com/servprotocolorg/serv/v12/constants"
-	"github.com/servprotocolorg/serv/v12/rename_chain/marker"
+
 	"testing"
 
 	"github.com/stretchr/testify/require"

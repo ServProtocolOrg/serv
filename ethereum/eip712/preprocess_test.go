@@ -2,8 +2,9 @@ package eip712_test
 
 import (
 	"encoding/hex"
+
 	"github.com/servprotocolorg/serv/v12/constants"
-	"github.com/servprotocolorg/serv/v12/rename_chain/marker"
+
 	"strings"
 	"testing"
 
