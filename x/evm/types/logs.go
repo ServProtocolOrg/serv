@@ -10,47 +10,6 @@ import (
 	evertypes "github.com/EscanBE/evermint/v12/types"
 )
 
-// NewTransactionLogs creates a new NewTransactionLogs instance.
-func NewTransactionLogs(hash common.Hash, logs []*Log) TransactionLogs {
-	return TransactionLogs{
-		Hash: hash.String(),
-		Logs: logs,
-	}
-}
-
-// NewTransactionLogsFromEth creates a new NewTransactionLogs instance using []*ethtypes.Log.
-func NewTransactionLogsFromEth(hash common.Hash, ethlogs []*ethtypes.Log) TransactionLogs {
-	return TransactionLogs{
-		Hash: hash.String(),
-		Logs: NewLogsFromEth(ethlogs),
-	}
-}
-
-// Validate performs a basic validation of a GenesisAccount fields.
-func (tx TransactionLogs) Validate() error {
-	if evertypes.IsEmptyHash(tx.Hash) {
-		return fmt.Errorf("hash cannot be the empty %s", tx.Hash)
-	}
-
-	for i, log := range tx.Logs {
-		if log == nil {
-			return fmt.Errorf("log %d cannot be nil", i)
-		}
-		if err := log.Validate(); err != nil {
-			return fmt.Errorf("invalid log %d: %w", i, err)
-		}
-		if log.TxHash != tx.Hash {
-			return fmt.Errorf("log tx hash mismatch (%s ≠ %s)", log.TxHash, tx.Hash)
-		}
-	}
-	return nil
-}
-
-// EthLogs returns the Ethereum type Logs from the Transaction Logs.
-func (tx TransactionLogs) EthLogs() []*ethtypes.Log {
-	return LogsToEthereum(tx.Logs)
-}
-
 // Validate performs a basic validation of an ethereum Log fields.
 func (log *Log) Validate() error {
 	if err := evertypes.ValidateAddress(log.Address); err != nil {
