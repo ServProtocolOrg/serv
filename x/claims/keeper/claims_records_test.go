@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"github.com/servprotocolorg/serv/v12/rename_chain/marker"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/servprotocolorg/serv/v12/x/claims/types"
