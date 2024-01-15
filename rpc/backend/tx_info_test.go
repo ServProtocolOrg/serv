@@ -188,7 +188,7 @@ func (suite *BackendTestSuite) TestGetTransactionsByHashPending() {
 }
 
 func (suite *BackendTestSuite) TestGetTxByEthHash() {
-	msgEthereumTx, bz := suite.buildEthereumTx()
+	msgEthereumTx, _ := suite.buildEthereumTx()
 	rpcTransaction, _ := rpctypes.NewRPCTransaction(msgEthereumTx.AsTransaction(), common.Hash{}, 0, 0, big.NewInt(1), suite.backend.chainID)
 
 	testCases := []struct {
@@ -201,10 +201,8 @@ func (suite *BackendTestSuite) TestGetTxByEthHash() {
 		{
 			"fail - Indexer disabled can't find transaction",
 			func() {
-				suite.backend.indexer = nil
-				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				query := fmt.Sprintf("%s.%s='%s'", evmtypes.TypeMsgEthereumTx, evmtypes.AttributeKeyEthereumTxHash, common.HexToHash(msgEthereumTx.Hash).Hex())
-				RegisterTxSearch(client, query, bz)
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHashErr(indexer, msgEthereumTx.AsTransaction().Hash())
 			},
 			msgEthereumTx,
 			rpcTransaction,
@@ -473,8 +471,6 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockNumberAndIndex() {
 }
 
 func (suite *BackendTestSuite) TestGetTransactionByTxIndex() {
-	_, bz := suite.buildEthereumTx()
-
 	testCases := []struct {
 		name         string
 		registerMock func()
@@ -486,11 +482,10 @@ func (suite *BackendTestSuite) TestGetTransactionByTxIndex() {
 		{
 			"fail - Ethereum tx with query not found",
 			func() {
-				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				suite.backend.indexer = nil
-				RegisterTxSearch(client, "tx.height=0 AND ethereum_tx.txIndex=0", bz)
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByBlockAndIndexError(indexer, 1, 0)
 			},
-			0,
+			1,
 			0,
 			&evertypes.TxResult{},
 			false,

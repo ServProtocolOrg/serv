@@ -6,8 +6,6 @@ import (
 	"math"
 	"math/big"
 
-	errorsmod "cosmossdk.io/errors"
-
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	"github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -273,44 +271,15 @@ func (b *Backend) GetTransactionByBlockNumberAndIndex(blockNum rpctypes.BlockNum
 	return b.GetTransactionByBlockAndIndex(block, idx)
 }
 
-// GetTxByEthHash uses `/tx_query` to find transaction by ethereum tx hash
-// TODO: Don't need to convert once hashing is fixed on Tendermint
-// https://github.com/cometbft/cometbft/issues/6539
+// GetTxByEthHash get the ETH-transaction by hash from the indexer
 func (b *Backend) GetTxByEthHash(hash common.Hash) (*types.TxResult, error) {
-	if b.indexer != nil {
-		return b.indexer.GetByTxHash(hash)
-	}
-
-	// fallback to tendermint tx indexer
-	query := fmt.Sprintf("%s.%s='%s'", evmtypes.TypeMsgEthereumTx, evmtypes.AttributeKeyEthereumTxHash, hash.Hex())
-	txResult, err := b.queryTendermintTxIndexer(query, func(txs *rpctypes.ParsedTxs) *rpctypes.ParsedTx {
-		return txs.GetTxByHash(hash)
-	})
-	if err != nil {
-		return nil, errorsmod.Wrapf(err, "GetTxByEthHash %s", hash.Hex())
-	}
-	return txResult, nil
+	return b.indexer.GetByTxHash(hash)
 }
 
-// GetTxByTxIndex uses `/tx_query` to find transaction by tx index of valid ethereum txs
+// GetTxByTxIndex get the ETH-transaction by block height and index from the indexer
 func (b *Backend) GetTxByTxIndex(height int64, index uint) (*types.TxResult, error) {
 	int32Index := int32(index) // #nosec G701 -- checked for int overflow already
-	if b.indexer != nil {
-		return b.indexer.GetByBlockAndIndex(height, int32Index)
-	}
-
-	// fallback to tendermint tx indexer
-	query := fmt.Sprintf("tx.height=%d AND %s.%s=%d",
-		height, evmtypes.TypeMsgEthereumTx,
-		evmtypes.AttributeKeyTxIndex, index,
-	)
-	txResult, err := b.queryTendermintTxIndexer(query, func(txs *rpctypes.ParsedTxs) *rpctypes.ParsedTx {
-		return txs.GetTxByTxIndex(int(index)) // #nosec G701 -- checked for int overflow already
-	})
-	if err != nil {
-		return nil, errorsmod.Wrapf(err, "GetTxByTxIndex %d %d", height, index)
-	}
-	return txResult, nil
+	return b.indexer.GetByBlockAndIndex(height, int32Index)
 }
 
 // queryTendermintTxIndexer query tx in tendermint tx indexer
