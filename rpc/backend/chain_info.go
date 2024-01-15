@@ -3,6 +3,7 @@ package backend
 import (
 	"errors"
 	"fmt"
+	"github.com/EscanBE/evermint/v12/indexer"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	"math/big"
 	"strconv"
@@ -28,6 +29,9 @@ func (b *Backend) ChainID() (*hexutil.Big, error) {
 	// if current block is at or past the EIP-155 replay-protection fork block, return chainID from config
 	bn, err := b.BlockNumber()
 	if err != nil {
+		if err == indexer.ErrIndexerNotReady {
+			return nil, err
+		}
 		b.logger.Debug("failed to fetch latest block number", "error", err.Error())
 		return (*hexutil.Big)(eip155ChainID), nil
 	}

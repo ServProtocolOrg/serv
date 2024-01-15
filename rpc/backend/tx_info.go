@@ -2,6 +2,7 @@ package backend
 
 import (
 	"fmt"
+	"github.com/EscanBE/evermint/v12/indexer"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	"math"
 	"math/big"
@@ -144,6 +145,10 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 
 	res, err := b.GetTxByEthHash(hash)
 	if err != nil {
+		if err == indexer.ErrIndexerNotReady {
+			b.logger.Debug("indexer not ready", "hash", hexTx)
+			return nil, err
+		}
 		b.logger.Debug("tx not found", "hash", hexTx, "error", err.Error())
 		return nil, nil
 	}
