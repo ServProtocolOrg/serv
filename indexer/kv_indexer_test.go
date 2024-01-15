@@ -160,6 +160,9 @@ func TestKVIndexer(t *testing.T) {
 
 			err = idxer.IndexBlock(tc.block, tc.blockResult)
 			require.NoError(t, err)
+
+			idxer.Ready()
+
 			if !tc.expSuccess {
 				first, err := idxer.FirstIndexedBlock()
 				require.NoError(t, err)

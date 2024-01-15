@@ -124,6 +124,11 @@ func (_m *EVMTxIndexer) LastIndexedBlock() (int64, error) {
 	return r0, r1
 }
 
+// Ready provides a mock function with given fields:
+func (_m *EVMTxIndexer) Ready() {
+	_m.Called()
+}
+
 type mockConstructorTestingTNewEVMTxIndexer interface {
 	mock.TestingT
 	Cleanup(func())

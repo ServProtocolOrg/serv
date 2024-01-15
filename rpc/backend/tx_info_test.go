@@ -114,6 +114,7 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 			suite.backend.indexer = indexer.NewKVIndexer(db, tmlog.NewNopLogger(), suite.backend.clientCtx)
 			err := suite.backend.indexer.IndexBlock(block, responseDeliver)
 			suite.Require().NoError(err)
+			suite.backend.indexer.Ready()
 
 			rpcTx, err := suite.backend.GetTransactionByHash(common.HexToHash(tc.tx.Hash))
 
@@ -358,6 +359,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				block := &types.Block{Header: types.Header{Height: 1, ChainID: "test"}, Data: types.Data{Txs: []types.Tx{txBz}}}
 				err := suite.backend.indexer.IndexBlock(block, defaultResponseDeliverTx)
 				suite.Require().NoError(err)
+				suite.backend.indexer.Ready()
 				_, err = RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, sdk.NewInt(1))
@@ -609,6 +611,7 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 			suite.backend.indexer = indexer.NewKVIndexer(db, tmlog.NewNopLogger(), suite.backend.clientCtx)
 			err := suite.backend.indexer.IndexBlock(tc.block, tc.blockResult)
 			suite.Require().NoError(err)
+			suite.backend.indexer.Ready()
 
 			txReceipt, err := suite.backend.GetTransactionReceipt(common.HexToHash(tc.tx.Hash))
 			if tc.expPass {

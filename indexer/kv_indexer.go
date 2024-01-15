@@ -3,6 +3,7 @@ package indexer
 import (
 	"fmt"
 	"github.com/EscanBE/evermint/v12/constants"
+	"sync"
 
 	errorsmod "cosmossdk.io/errors"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
@@ -30,16 +31,28 @@ const (
 
 var _ evertypes.EVMTxIndexer = &KVIndexer{}
 
+var ErrIndexerNotReady = fmt.Errorf("indexer not ready")
+
 // KVIndexer implements an ETH-Tx indexer on a KV db.
 type KVIndexer struct {
 	db        dbm.DB
 	logger    log.Logger
 	clientCtx client.Context
+
+	mu    *sync.RWMutex
+	ready bool
 }
 
 // NewKVIndexer creates the KVIndexer
 func NewKVIndexer(db dbm.DB, logger log.Logger, clientCtx client.Context) *KVIndexer {
-	return &KVIndexer{db, logger, clientCtx}
+	return &KVIndexer{
+		db:        db,
+		logger:    logger,
+		clientCtx: clientCtx,
+
+		mu:    &sync.RWMutex{},
+		ready: false,
+	}
 }
 
 // IndexBlock indexes all ETH Txs of the block.
@@ -124,6 +137,18 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 	return nil
 }
 
+func (kv *KVIndexer) Ready() {
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	kv.ready = true
+}
+
+func (kv *KVIndexer) isReady() bool {
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+	return kv.ready
+}
+
 // LastIndexedBlock returns the last block number which was indexed and flushed into database.
 // Returns -1 if db is empty.
 func (kv *KVIndexer) LastIndexedBlock() (int64, error) {
@@ -137,6 +162,22 @@ func (kv *KVIndexer) FirstIndexedBlock() (int64, error) {
 
 // GetByTxHash finds eth tx by eth tx hash
 func (kv *KVIndexer) GetByTxHash(hash common.Hash) (*evertypes.TxResult, error) {
+	if !kv.isReady() {
+		return nil, ErrIndexerNotReady
+	}
+	return kv.getByTxHash(hash)
+}
+
+// GetByBlockAndIndex finds eth tx by block number and eth tx index
+func (kv *KVIndexer) GetByBlockAndIndex(blockNumber int64, txIndex int32) (*evertypes.TxResult, error) {
+	if !kv.isReady() {
+		return nil, ErrIndexerNotReady
+	}
+	return kv.getByBlockAndIndex(blockNumber, txIndex)
+}
+
+// getByTxHash finds eth tx by eth tx hash
+func (kv *KVIndexer) getByTxHash(hash common.Hash) (*evertypes.TxResult, error) {
 	bz, err := kv.db.Get(TxHashKey(hash))
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "GetByTxHash %s", hash.Hex())
@@ -152,7 +193,7 @@ func (kv *KVIndexer) GetByTxHash(hash common.Hash) (*evertypes.TxResult, error) 
 }
 
 // GetByBlockAndIndex finds eth tx by block number and eth tx index
-func (kv *KVIndexer) GetByBlockAndIndex(blockNumber int64, txIndex int32) (*evertypes.TxResult, error) {
+func (kv *KVIndexer) getByBlockAndIndex(blockNumber int64, txIndex int32) (*evertypes.TxResult, error) {
 	bz, err := kv.db.Get(TxIndexKey(blockNumber, txIndex))
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "GetByBlockAndIndex %d %d", blockNumber, txIndex)
@@ -160,7 +201,7 @@ func (kv *KVIndexer) GetByBlockAndIndex(blockNumber int64, txIndex int32) (*ever
 	if len(bz) == 0 {
 		return nil, fmt.Errorf("tx not found, block: %d, eth-index: %d", blockNumber, txIndex)
 	}
-	return kv.GetByTxHash(common.BytesToHash(bz))
+	return kv.getByTxHash(common.BytesToHash(bz))
 }
 
 // TxHashKey returns the key for db entry: `tx hash -> tx result struct`

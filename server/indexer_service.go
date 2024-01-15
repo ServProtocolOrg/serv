@@ -85,9 +85,19 @@ func (eis *EVMIndexerService) OnStart() error {
 		// kinda unsafe, but we don't have a better way to do this
 	}
 
+	var isIndexerMarkedReady bool
+
 	for {
-		if latestBlock <= lastIndexedBlock {
+		if lastIndexedBlock >= latestBlock {
 			// nothing to index. wait for signal of new block
+
+			// mark indexer ready if not yet
+			if !isIndexerMarkedReady {
+				eis.txIdxr.Ready()
+				isIndexerMarkedReady = true
+			}
+
+			// wait
 			select {
 			case <-newBlockSignal:
 			case <-time.After(NewBlockWaitTimeout):

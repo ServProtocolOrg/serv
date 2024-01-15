@@ -18,6 +18,9 @@ type EVMTxIndexer interface {
 	// Notes: no guarantee data is flushed into database after this function returns, it might be flushed at later point.
 	IndexBlock(*tmtypes.Block, []*abci.ResponseDeliverTx) error
 
+	// Ready is an external trigger that indicates the indexer is ready to serve requests.
+	Ready()
+
 	// GetByTxHash returns nil if tx not found.
 	GetByTxHash(common.Hash) (*TxResult, error)
 
