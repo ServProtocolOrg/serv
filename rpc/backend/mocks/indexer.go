@@ -124,6 +124,24 @@ func (_m *EVMTxIndexer) IndexBlock(_a0 *cometbfttypes.Block, _a1 []*abcitypes.Re
 	return r0
 }
 
+// IsReady provides a mock function with given fields:
+func (_m *EVMTxIndexer) IsReady() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsReady")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // LastIndexedBlock provides a mock function with given fields:
 func (_m *EVMTxIndexer) LastIndexedBlock() (int64, error) {
 	ret := _m.Called()

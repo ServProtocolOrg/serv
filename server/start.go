@@ -535,6 +535,16 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 		case <-time.After(types.ServerStartTime): // assume server started successfully
 		}
 
+		// waiting for indexer indexes blocks
+		for {
+			time.Sleep(1 * time.Second)
+			if evmTxIndexer.IsReady() {
+				break
+			}
+
+			logger.Info("indexer still in progress, keep waiting")
+		}
+
 		// Start Json-RPC server
 		genDoc, err := genDocProvider()
 		if err != nil {

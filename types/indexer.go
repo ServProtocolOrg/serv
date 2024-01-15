@@ -21,6 +21,9 @@ type EVMTxIndexer interface {
 	// Ready is an external trigger that indicates the indexer is ready to serve requests.
 	Ready()
 
+	// IsReady returns true if the indexer is indexed completely and ready to serve requests.
+	IsReady() bool
+
 	// GetByTxHash returns nil if tx not found.
 	GetByTxHash(common.Hash) (*TxResult, error)
 

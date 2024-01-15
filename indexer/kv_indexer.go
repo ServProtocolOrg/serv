@@ -31,8 +31,6 @@ const (
 
 var _ evertypes.EVMTxIndexer = &KVIndexer{}
 
-var ErrIndexerNotReady = fmt.Errorf("indexer not ready")
-
 // KVIndexer implements an ETH-Tx indexer on a KV db.
 type KVIndexer struct {
 	db        dbm.DB
@@ -152,7 +150,7 @@ func (kv *KVIndexer) Ready() {
 	kv.ready = true
 }
 
-func (kv *KVIndexer) isReady() bool {
+func (kv *KVIndexer) IsReady() bool {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 	return kv.ready
@@ -171,17 +169,11 @@ func (kv *KVIndexer) FirstIndexedBlock() (int64, error) {
 
 // GetByTxHash finds eth tx by eth tx hash
 func (kv *KVIndexer) GetByTxHash(hash common.Hash) (*evertypes.TxResult, error) {
-	if !kv.isReady() {
-		return nil, ErrIndexerNotReady
-	}
 	return kv.getByTxHash(hash)
 }
 
 // GetByBlockAndIndex finds eth tx by block number and eth tx index
 func (kv *KVIndexer) GetByBlockAndIndex(blockNumber int64, txIndex int32) (*evertypes.TxResult, error) {
-	if !kv.isReady() {
-		return nil, ErrIndexerNotReady
-	}
 	return kv.getByBlockAndIndex(blockNumber, txIndex)
 }
 
