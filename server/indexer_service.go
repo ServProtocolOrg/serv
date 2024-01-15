@@ -53,7 +53,8 @@ func (eis *EVMIndexerService) OnStart() error {
 		ctx,
 		ServiceName,
 		types.QueryForEvent(types.EventNewBlockHeader).String(),
-		0)
+		0,
+	)
 	if err != nil {
 		return err
 	}
@@ -73,15 +74,19 @@ func (eis *EVMIndexerService) OnStart() error {
 		}
 	}()
 
-	lastBlock, err := eis.txIdxr.LastIndexedBlock()
+	lastIndexedBlock, err := eis.txIdxr.LastIndexedBlock()
 	if err != nil {
 		return err
 	}
-	if lastBlock == -1 {
-		lastBlock = latestBlock
+	if lastIndexedBlock == -1 {
+		lastIndexedBlock = latestBlock
+	} else if lastIndexedBlock < status.SyncInfo.EarliestBlockHeight {
+		lastIndexedBlock = status.SyncInfo.EarliestBlockHeight
+		// kinda unsafe, but we don't have a better way to do this
 	}
+
 	for {
-		if latestBlock <= lastBlock {
+		if latestBlock <= lastIndexedBlock {
 			// nothing to index. wait for signal of new block
 			select {
 			case <-newBlockSignal:
@@ -89,7 +94,7 @@ func (eis *EVMIndexerService) OnStart() error {
 			}
 			continue
 		}
-		for i := lastBlock + 1; i <= latestBlock; i++ {
+		for i := lastIndexedBlock + 1; i <= latestBlock; i++ {
 			block, err := eis.client.Block(ctx, &i)
 			if err != nil {
 				eis.Logger.Error("failed to fetch block", "height", i, "err", err)
@@ -103,7 +108,7 @@ func (eis *EVMIndexerService) OnStart() error {
 			if err := eis.txIdxr.IndexBlock(block.Block, blockResult.TxsResults); err != nil {
 				eis.Logger.Error("failed to index block", "height", i, "err", err)
 			}
-			lastBlock = blockResult.Height
+			lastIndexedBlock = blockResult.Height
 		}
 	}
 }
