@@ -18,9 +18,18 @@ type EVMTxIndexer interface {
 	// Notes: no guarantee data is flushed into database after this function returns, it might be flushed at later point.
 	IndexBlock(*tmtypes.Block, []*abci.ResponseDeliverTx) error
 
+	// Ready is an external trigger that indicates the indexer is ready to serve requests.
+	Ready()
+
+	// IsReady returns true if the indexer is indexed completely and ready to serve requests.
+	IsReady() bool
+
 	// GetByTxHash returns nil if tx not found.
 	GetByTxHash(common.Hash) (*TxResult, error)
 
 	// GetByBlockAndIndex returns nil if tx not found.
 	GetByBlockAndIndex(int64, int32) (*TxResult, error)
+
+	// GetLastRequestIndexedBlock returns the block height of the latest success called to IndexBlock()
+	GetLastRequestIndexedBlock() (int64, error)
 }

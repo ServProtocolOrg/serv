@@ -31,7 +31,7 @@ func RegisterIndexerGetByBlockAndIndex(queryClient *mocks.EVMTxIndexer, height i
 
 func RegisterIndexerGetByBlockAndIndexError(queryClient *mocks.EVMTxIndexer, height int64, index int32) {
 	queryClient.On("GetByBlockAndIndex", height, index).
-		Return(nil, sdkerrors.ErrInvalidRequest)
+		Return(nil, sdkerrors.ErrNotFound)
 }
 
 func RegisterIndexerGetByTxHash(queryClient *mocks.EVMTxIndexer, hash common.Hash, height int64) {
@@ -45,4 +45,19 @@ func RegisterIndexerGetByTxHash(queryClient *mocks.EVMTxIndexer, hash common.Has
 			GasUsed:           mockGasUsed,
 			CumulativeGasUsed: mockGasUsed,
 		}, nil)
+}
+
+func RegisterIndexerGetByTxHashErr(queryClient *mocks.EVMTxIndexer, hash common.Hash) {
+	queryClient.On("GetByTxHash", hash).
+		Return(nil, sdkerrors.ErrNotFound)
+}
+
+func RegisterIndexerGetLastRequestIndexedBlock(queryClient *mocks.EVMTxIndexer, height int64) {
+	queryClient.On("GetLastRequestIndexedBlock").
+		Return(height, nil)
+}
+
+func RegisterIndexerGetLastRequestIndexedBlockErr(queryClient *mocks.EVMTxIndexer) {
+	queryClient.On("GetLastRequestIndexedBlock").
+		Return(int64(0), sdkerrors.ErrNotFound)
 }

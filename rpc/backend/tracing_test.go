@@ -190,6 +190,8 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 
 			err := suite.backend.indexer.IndexBlock(tc.block, tc.responseBlock)
 			suite.Require().NoError(err)
+			suite.backend.indexer.Ready()
+
 			txResult, err := suite.backend.TraceTransaction(txHash, nil)
 
 			if tc.expPass {

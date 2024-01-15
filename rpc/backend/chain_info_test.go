@@ -8,8 +8,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 
-	"google.golang.org/grpc/metadata"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cometbft/cometbft/abci/types"
@@ -163,14 +161,22 @@ func (suite *BackendTestSuite) TestChainId() {
 		expPass      bool
 	}{
 		{
-			"pass - block is at or past the EIP-155 replay-protection fork block, return chainID from config ",
-			func() {
-				var header metadata.MD
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParamsInvalidHeight(queryClient, &header, int64(1))
+			name: "pass - block is at or past the EIP-155 replay-protection fork block, return chainID from config",
+			registerMock: func() {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
 			},
-			expChainID,
-			true,
+			expChainID: expChainID,
+			expPass:    true,
+		},
+		{
+			name: "pass - indexer returns error",
+			registerMock: func() {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
+			},
+			expChainID: expChainID,
+			expPass:    true,
 		},
 	}
 
@@ -332,12 +338,12 @@ func (suite *BackendTestSuite) TestFeeHistory() {
 		expPass        bool
 	}{
 		{
-			"fail - can't get params ",
+			"fail - can't get latest block height",
 			func(validator sdk.AccAddress) {
-				var header metadata.MD
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				suite.backend.cfg.JSONRPC.FeeHistoryCap = 0
-				RegisterParamsError(queryClient, &header, ethrpc.BlockNumber(1).Int64())
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
 			},
 			1,
 			-1,
@@ -348,10 +354,10 @@ func (suite *BackendTestSuite) TestFeeHistory() {
 		{
 			"fail - user block count higher than max block count ",
 			func(validator sdk.AccAddress) {
-				var header metadata.MD
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				suite.backend.cfg.JSONRPC.FeeHistoryCap = 0
-				RegisterParams(queryClient, &header, ethrpc.BlockNumber(1).Int64())
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			1,
 			-1,
@@ -401,9 +407,10 @@ func (suite *BackendTestSuite) TestFeeHistory() {
 				RegisterValidatorAccount(queryClient, validator)
 				RegisterConsensusParams(client, 1)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, 1)
 				RegisterParamsWithoutHeader(queryClient, 1)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			1,
 			1,
@@ -414,7 +421,6 @@ func (suite *BackendTestSuite) TestFeeHistory() {
 		{
 			"pass - Valid FeeHistoryResults object",
 			func(validator sdk.AccAddress) {
-				var header metadata.MD
 				baseFee := sdk.NewInt(1)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
@@ -426,8 +432,10 @@ func (suite *BackendTestSuite) TestFeeHistory() {
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
 				RegisterConsensusParams(client, 1)
-				RegisterParams(queryClient, &header, 1)
 				RegisterParamsWithoutHeader(queryClient, 1)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			1,
 			1,

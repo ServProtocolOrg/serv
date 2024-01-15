@@ -52,6 +52,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (ante) [#64](https://github.com/EscanBE/evermint/pull/64) Add EvmTx sender override protection in ante and correct changelog
 - (lint) [#83](https://github.com/EscanBE/evermint/pull/83) Update lint rules and fix lint issues
 - (cleanup) [#92](https://github.com/EscanBE/evermint/pull/92) Cleanup un-used `x/evm` and `x/erc20` types
+- (indexer) [#96](https://github.com/EscanBE/evermint/pull/96) Make EVMTxIndexer mandatory service, starts before Json-RPC
 
 ### Bug Fixes
 

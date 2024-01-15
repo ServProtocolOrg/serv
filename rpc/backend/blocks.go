@@ -2,45 +2,29 @@ package backend
 
 import (
 	"fmt"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
-	"math"
-	"math/big"
-	"strconv"
-
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
+	"math"
+	"math/big"
 )
 
-// BlockNumber returns the current block number in abci app state. Because abci
-// app state could lag behind from tendermint latest block, it's more stable for
-// the client to use the latest block number in abci app state than tendermint
-// rpc.
+// BlockNumber returns the current block number, based on indexed block state of the EVMTxIndexer.
 func (b *Backend) BlockNumber() (hexutil.Uint64, error) {
-	// do any grpc query, ignore the response and use the returned block height
-	var header metadata.MD
-	_, err := b.queryClient.Params(b.ctx, &evmtypes.QueryParamsRequest{}, grpc.Header(&header))
+	height, err := b.indexer.GetLastRequestIndexedBlock()
 	if err != nil {
-		return hexutil.Uint64(0), err
+		return 0, err
 	}
 
-	blockHeightHeader := header.Get(grpctypes.GRPCBlockHeightHeader)
-	if headerLen := len(blockHeightHeader); headerLen != 1 {
-		return 0, fmt.Errorf("unexpected '%s' gRPC header length; got %d, expected: %d", grpctypes.GRPCBlockHeightHeader, headerLen, 1)
-	}
-
-	height, err := strconv.ParseUint(blockHeightHeader[0], 10, 64)
-	if err != nil {
-		return 0, fmt.Errorf("failed to parse block height: %w", err)
+	if height < 1 {
+		return 0, fmt.Errorf("no block indexed yet")
 	}
 
 	if height > math.MaxInt64 {

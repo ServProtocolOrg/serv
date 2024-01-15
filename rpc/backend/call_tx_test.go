@@ -14,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
-	"google.golang.org/grpc/metadata"
 )
 
 func (suite *BackendTestSuite) TestResend() {
@@ -61,15 +60,16 @@ func (suite *BackendTestSuite) TestResend() {
 		{
 			"pass - Can't set Tx defaults BaseFee disabled",
 			func() {
-				var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParams(queryClient, &header, 1)
 				_, err := RegisterBlock(client, 1, nil)
 				suite.Require().NoError(err)
 				_, err = RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
 				RegisterBaseFeeDisabled(queryClient)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			evmtypes.TransactionArgs{
 				Nonce:   &txNonce,
@@ -83,17 +83,18 @@ func (suite *BackendTestSuite) TestResend() {
 		{
 			"pass - Can't set Tx defaults",
 			func() {
-				var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				feeMarketClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
-				RegisterParams(queryClient, &header, 1)
 				RegisterFeeMarketParams(feeMarketClient, 1)
 				_, err := RegisterBlock(client, 1, nil)
 				suite.Require().NoError(err)
 				_, err = RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, baseFee)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			evmtypes.TransactionArgs{
 				Nonce: &txNonce,
@@ -106,15 +107,16 @@ func (suite *BackendTestSuite) TestResend() {
 		{
 			"pass - MaxFeePerGas is nil",
 			func() {
-				var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParams(queryClient, &header, 1)
 				_, err := RegisterBlock(client, 1, nil)
 				suite.Require().NoError(err)
 				_, err = RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
 				RegisterBaseFeeDisabled(queryClient)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
@@ -144,11 +146,11 @@ func (suite *BackendTestSuite) TestResend() {
 		{
 			"fail - Block error",
 			func() {
-				var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParams(queryClient, &header, 1)
 				RegisterBlockError(client, 1)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			evmtypes.TransactionArgs{
 				Nonce: &txNonce,
@@ -161,15 +163,16 @@ func (suite *BackendTestSuite) TestResend() {
 		{
 			"pass - MaxFeePerGas is nil",
 			func() {
-				var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParams(queryClient, &header, 1)
 				_, err := RegisterBlock(client, 1, nil)
 				suite.Require().NoError(err)
 				_, err = RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, baseFee)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
@@ -186,15 +189,16 @@ func (suite *BackendTestSuite) TestResend() {
 		{
 			"pass - Chain Id is nil",
 			func() {
-				var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParams(queryClient, &header, 1)
 				_, err := RegisterBlock(client, 1, nil)
 				suite.Require().NoError(err)
 				_, err = RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, baseFee)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
@@ -209,7 +213,6 @@ func (suite *BackendTestSuite) TestResend() {
 		{
 			"fail - Pending transactions error",
 			func() {
-				var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, nil)
@@ -218,9 +221,11 @@ func (suite *BackendTestSuite) TestResend() {
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterEstimateGas(queryClient, callArgs)
-				RegisterParams(queryClient, &header, 1)
 				RegisterParamsWithoutHeader(queryClient, 1)
 				RegisterUnconfirmedTxsError(client, nil)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
@@ -239,7 +244,6 @@ func (suite *BackendTestSuite) TestResend() {
 		{
 			"fail - Not Ethereum txs",
 			func() {
-				var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, nil)
@@ -248,9 +252,11 @@ func (suite *BackendTestSuite) TestResend() {
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterEstimateGas(queryClient, callArgs)
-				RegisterParams(queryClient, &header, 1)
 				RegisterParamsWithoutHeader(queryClient, 1)
 				RegisterUnconfirmedTxsEmpty(client, nil)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
@@ -265,6 +271,26 @@ func (suite *BackendTestSuite) TestResend() {
 			nil,
 			common.Hash{},
 			false,
+		},
+		{
+			name: "fail - indexer returns error",
+			registerMock: func() {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
+			},
+			args: evmtypes.TransactionArgs{
+				Nonce:                &txNonce,
+				To:                   &toAddr,
+				MaxFeePerGas:         gasPrice,
+				MaxPriorityFeePerGas: gasPrice,
+				Value:                gasPrice,
+				Gas:                  nil,
+				ChainID:              callArgs.ChainID,
+			},
+			gasPrice: gasPrice,
+			gasLimit: nil,
+			expHash:  common.Hash{},
+			expPass:  false,
 		},
 	}
 
@@ -472,17 +498,18 @@ func (suite *BackendTestSuite) TestGasPrice() {
 		{
 			"pass - get the default gas price",
 			func() {
-				var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				feeMarketClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
 				RegisterFeeMarketParams(feeMarketClient, 1)
-				RegisterParams(queryClient, &header, 1)
 				_, err := RegisterBlock(client, 1, nil)
 				suite.Require().NoError(err)
 				_, err = RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, sdk.NewInt(1))
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			defaultGasPrice,
 			true,
@@ -490,20 +517,30 @@ func (suite *BackendTestSuite) TestGasPrice() {
 		{
 			"fail - can't get gasFee, FeeMarketParams error",
 			func() {
-				var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				feeMarketClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
 				RegisterFeeMarketParamsError(feeMarketClient, 1)
-				RegisterParams(queryClient, &header, 1)
 				_, err := RegisterBlock(client, 1, nil)
 				suite.Require().NoError(err)
 				_, err = RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, sdk.NewInt(1))
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			defaultGasPrice,
 			false,
+		},
+		{
+			name: "fail - indexer returns error",
+			registerMock: func() {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
+			},
+			expGas:  defaultGasPrice,
+			expPass: false,
 		},
 	}
 

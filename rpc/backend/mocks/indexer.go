@@ -78,6 +78,34 @@ func (_m *EVMTxIndexer) GetByTxHash(_a0 common.Hash) (*types.TxResult, error) {
 	return r0, r1
 }
 
+// GetLastIndexedBlock provides a mock function with given fields:
+func (_m *EVMTxIndexer) GetLastRequestIndexedBlock() (int64, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLastRequestIndexedBlock")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (int64, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // IndexBlock provides a mock function with given fields: _a0, _a1
 func (_m *EVMTxIndexer) IndexBlock(_a0 *cometbfttypes.Block, _a1 []*abcitypes.ResponseDeliverTx) error {
 	ret := _m.Called(_a0, _a1)
@@ -91,6 +119,24 @@ func (_m *EVMTxIndexer) IndexBlock(_a0 *cometbfttypes.Block, _a1 []*abcitypes.Re
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// IsReady provides a mock function with given fields:
+func (_m *EVMTxIndexer) IsReady() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsReady")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
 	}
 
 	return r0
@@ -122,6 +168,11 @@ func (_m *EVMTxIndexer) LastIndexedBlock() (int64, error) {
 	}
 
 	return r0, r1
+}
+
+// Ready provides a mock function with given fields:
+func (_m *EVMTxIndexer) Ready() {
+	_m.Called()
 }
 
 type mockConstructorTestingTNewEVMTxIndexer interface {

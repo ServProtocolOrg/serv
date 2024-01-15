@@ -157,6 +157,10 @@ func NewBackend(
 		panic(err)
 	}
 
+	if indexer == nil {
+		panic("indexer is required")
+	}
+
 	return &Backend{
 		ctx:                 context.Background(),
 		clientCtx:           clientCtx,

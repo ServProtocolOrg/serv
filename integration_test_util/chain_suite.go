@@ -623,6 +623,8 @@ func (suite *ChainIntegrationTestSuite) triggerEvmIndexer(latestHeight int64, bl
 		err = suite.EvmTxIndexer.IndexBlock(tmBlk, tmAbciResponse.DeliverTxs)
 		suite.Require().NoErrorf(err, "failed to index block %d", ch)
 	}
+
+	suite.EvmTxIndexer.Ready()
 }
 
 // GetBlockStoreAndStateStore returns blockStore and stateStore if Tendermint is Enabled.
