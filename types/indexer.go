@@ -26,4 +26,7 @@ type EVMTxIndexer interface {
 
 	// GetByBlockAndIndex returns nil if tx not found.
 	GetByBlockAndIndex(int64, int32) (*TxResult, error)
+
+	// GetLastRequestIndexedBlock returns the block height of the latest success called to IndexBlock()
+	GetLastRequestIndexedBlock() (int64, error)
 }

@@ -51,3 +51,8 @@ func RegisterIndexerGetByTxHashErr(queryClient *mocks.EVMTxIndexer, hash common.
 	queryClient.On("GetByTxHash", hash).
 		Return(nil, sdkerrors.ErrNotFound)
 }
+
+func RegisterIndexerGetLastRequestIndexedBlock(queryClient *mocks.EVMTxIndexer, height int64) {
+	queryClient.On("GetLastRequestIndexedBlock").
+		Return(height, nil)
+}

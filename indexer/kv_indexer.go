@@ -39,16 +39,18 @@ type KVIndexer struct {
 	logger    log.Logger
 	clientCtx client.Context
 
-	mu    *sync.RWMutex
-	ready bool
+	mu                      *sync.RWMutex
+	ready                   bool
+	lastRequestIndexedBlock int64 // indexer does not index empty block so LastIndexedBlock() might be different from last request indexed block.
 }
 
 // NewKVIndexer creates the KVIndexer
 func NewKVIndexer(db dbm.DB, logger log.Logger, clientCtx client.Context) *KVIndexer {
 	return &KVIndexer{
-		db:        db,
-		logger:    logger,
-		clientCtx: clientCtx,
+		db:                      db,
+		logger:                  logger,
+		clientCtx:               clientCtx,
+		lastRequestIndexedBlock: -1,
 
 		mu:    &sync.RWMutex{},
 		ready: false,
@@ -134,6 +136,13 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 	if err := batch.Write(); err != nil {
 		return errorsmod.Wrapf(err, "IndexBlock %d, write batch", block.Height)
 	}
+
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	if kv.lastRequestIndexedBlock < height {
+		kv.lastRequestIndexedBlock = height
+	}
+
 	return nil
 }
 
@@ -174,6 +183,21 @@ func (kv *KVIndexer) GetByBlockAndIndex(blockNumber int64, txIndex int32) (*ever
 		return nil, ErrIndexerNotReady
 	}
 	return kv.getByBlockAndIndex(blockNumber, txIndex)
+}
+
+// GetLastRequestIndexedBlock returns the block height of the latest success called to IndexBlock()
+func (kv *KVIndexer) GetLastRequestIndexedBlock() (int64, error) {
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+	if !kv.ready {
+		return -1, ErrIndexerNotReady
+	}
+
+	if kv.lastRequestIndexedBlock == -1 {
+		return LoadLastBlock(kv.db)
+	}
+
+	return kv.lastRequestIndexedBlock, nil
 }
 
 // getByTxHash finds eth tx by eth tx hash
