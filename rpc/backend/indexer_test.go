@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"github.com/EscanBE/evermint/v12/indexer"
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
 	"github.com/EscanBE/evermint/v12/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -53,11 +52,6 @@ func RegisterIndexerGetByTxHashErr(queryClient *mocks.EVMTxIndexer, hash common.
 		Return(nil, sdkerrors.ErrNotFound)
 }
 
-func RegisterIndexerGetByTxHashErrNotReady(queryClient *mocks.EVMTxIndexer, hash common.Hash) {
-	queryClient.On("GetByTxHash", hash).
-		Return(nil, indexer.ErrIndexerNotReady)
-}
-
 func RegisterIndexerGetLastRequestIndexedBlock(queryClient *mocks.EVMTxIndexer, height int64) {
 	queryClient.On("GetLastRequestIndexedBlock").
 		Return(height, nil)
@@ -66,9 +60,4 @@ func RegisterIndexerGetLastRequestIndexedBlock(queryClient *mocks.EVMTxIndexer, 
 func RegisterIndexerGetLastRequestIndexedBlockErr(queryClient *mocks.EVMTxIndexer) {
 	queryClient.On("GetLastRequestIndexedBlock").
 		Return(int64(0), sdkerrors.ErrNotFound)
-}
-
-func RegisterIndexerGetLastRequestIndexedBlockErrNotReady(queryClient *mocks.EVMTxIndexer) {
-	queryClient.On("GetLastRequestIndexedBlock").
-		Return(int64(0), indexer.ErrIndexerNotReady)
 }

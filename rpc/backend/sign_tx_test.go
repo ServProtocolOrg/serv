@@ -142,23 +142,6 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 			true,
 		},
 		{
-			name: "fail - when indexer not ready",
-			registerMock: func() {
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				armor := crypto.EncryptArmorPrivKey(priv, "", "eth_secp256k1")
-				_ = suite.backend.clientCtx.Keyring.ImportPrivKey("test_key", armor, "")
-				RegisterParamsWithoutHeader(queryClient, 1)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
-
-				_ = broadcastTx(suite, callArgsDefault)
-			},
-			args:    callArgsDefault,
-			expHash: common.Hash{},
-			expPass: false,
-		},
-		{
 			name: "fail - when indexer returns error",
 			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)

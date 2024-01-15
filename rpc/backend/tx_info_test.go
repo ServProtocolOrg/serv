@@ -627,15 +627,6 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 		expErr       bool
 	}{
 		{
-			name: "fail - indexer not ready",
-			registerMock: func(txHash common.Hash) {
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetByTxHashErrNotReady(indexer, txHash)
-			},
-			tx:     msgEthereumTx,
-			expErr: true,
-		},
-		{
 			name: "fail - indexer returns error",
 			registerMock: func(txHash common.Hash) {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)

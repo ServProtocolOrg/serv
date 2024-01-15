@@ -181,9 +181,6 @@ func (kv *KVIndexer) GetByBlockAndIndex(blockNumber int64, txIndex int32) (*ever
 func (kv *KVIndexer) GetLastRequestIndexedBlock() (int64, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
-	if !kv.ready {
-		return -1, ErrIndexerNotReady
-	}
 
 	if kv.lastRequestIndexedBlock == -1 {
 		return LoadLastBlock(kv.db)

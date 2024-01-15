@@ -47,14 +47,6 @@ func (suite *BackendTestSuite) TestBlockNumber() {
 			expPass:        true,
 		},
 		{
-			name: "fail - indexer not ready",
-			registerMock: func() {
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
-			},
-			expPass: false,
-		},
-		{
 			name: "fail - indexer returns error",
 			registerMock: func() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
@@ -203,29 +195,6 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 			},
 			false,
 			true,
-		},
-		{
-			name:        "fail - indexer not ready",
-			blockNumber: ethrpc.BlockNumber(1),
-			fullTx:      false,
-			baseFee:     sdk.NewInt(1).BigInt(),
-			validator:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
-			tx:          msgEthereumTx,
-			txBz:        bz,
-			registerMock: func(blockNum ethrpc.BlockNumber, baseFee math.Int, validator sdk.AccAddress, txBz []byte) {
-				height := blockNum.Int64()
-				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				resBlock, _ = RegisterBlock(client, height, txBz)
-				blockRes, _ = RegisterBlockResults(client, blockNum.Int64())
-
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterValidatorAccount(queryClient, validator)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
-			},
-			expNoop: false,
-			expPass: false,
 		},
 		{
 			name:        "fail - indexer returns error when fetching tx",
@@ -438,27 +407,6 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 			},
 			false,
 			true,
-		},
-		{
-			name:      "fail - indexer not ready",
-			hash:      common.BytesToHash(block.Hash()),
-			fullTx:    true,
-			baseFee:   sdk.NewInt(1).BigInt(),
-			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
-			registerMock: func(hash common.Hash, baseFee math.Int, validator sdk.AccAddress, txBz []byte) {
-				height := int64(1)
-				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				resBlock, _ = RegisterBlockByHash(client, hash, txBz)
-
-				blockRes, _ = RegisterBlockResults(client, height)
-
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterValidatorAccount(queryClient, validator)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
-			},
-			expPass: false,
 		},
 		{
 			name:      "success - indexer returns error",
@@ -715,16 +663,6 @@ func (suite *BackendTestSuite) TestTendermintBlockByNumber() {
 			},
 			false,
 			false,
-		},
-		{
-			name:        "fail - blockNum < 0 with indexer not ready",
-			blockNumber: ethrpc.BlockNumber(-1),
-			registerMock: func(_ ethrpc.BlockNumber) {
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
-			},
-			found:   false,
-			expPass: false,
 		},
 		{
 			name:        "fail - blockNum < 0 with indexer returns error",
@@ -1277,29 +1215,6 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			},
 			true,
 			true,
-		},
-		{
-			name:      "fail - indexer not ready",
-			baseFee:   sdk.NewInt(1).BigInt(),
-			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
-			height:    int64(1),
-			resBlock: &tmrpctypes.ResultBlock{
-				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
-			},
-			blockRes: &tmrpctypes.ResultBlockResults{
-				Height:     1,
-				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
-			},
-			fullTx: false,
-			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterValidatorAccount(queryClient, validator)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
-			},
-			expTxs:  false,
-			expPass: false,
 		},
 		{
 			name:      "pass - indexer returns error when getting latest block number",

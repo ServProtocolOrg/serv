@@ -170,15 +170,6 @@ func (suite *BackendTestSuite) TestChainId() {
 			expPass:    true,
 		},
 		{
-			name: "fail - indexer not ready",
-			registerMock: func() {
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
-			},
-			expChainID: nil,
-			expPass:    false,
-		},
-		{
 			name: "pass - indexer returns error",
 			registerMock: func() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
@@ -359,20 +350,6 @@ func (suite *BackendTestSuite) TestFeeHistory() {
 			nil,
 			nil,
 			false,
-		},
-		{
-			name: "fail - indexer not ready",
-			registerMock: func(validator sdk.AccAddress) {
-				suite.backend.cfg.JSONRPC.FeeHistoryCap = 0
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
-			},
-			userBlockCount: 1,
-			latestBlock:    -1,
-			expFeeHistory:  nil,
-			validator:      nil,
-			expPass:        false,
 		},
 		{
 			"fail - user block count higher than max block count ",

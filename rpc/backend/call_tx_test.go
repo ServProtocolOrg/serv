@@ -273,30 +273,10 @@ func (suite *BackendTestSuite) TestResend() {
 			false,
 		},
 		{
-			name: "fail - indexer not ready",
-			registerMock: func() {
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
-			},
-			args: evmtypes.TransactionArgs{
-				Nonce:                &txNonce,
-				To:                   &toAddr,
-				MaxFeePerGas:         gasPrice,
-				MaxPriorityFeePerGas: gasPrice,
-				Value:                gasPrice,
-				Gas:                  nil,
-				ChainID:              callArgs.ChainID,
-			},
-			gasPrice: gasPrice,
-			gasLimit: nil,
-			expHash:  common.Hash{},
-			expPass:  false,
-		},
-		{
 			name: "fail - indexer returns error",
 			registerMock: func() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
 			},
 			args: evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
@@ -552,15 +532,6 @@ func (suite *BackendTestSuite) TestGasPrice() {
 			},
 			defaultGasPrice,
 			false,
-		},
-		{
-			name: "fail - indexer not ready",
-			registerMock: func() {
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
-			},
-			expGas:  defaultGasPrice,
-			expPass: false,
 		},
 		{
 			name: "fail - indexer returns error",

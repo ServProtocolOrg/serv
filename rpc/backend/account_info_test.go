@@ -383,17 +383,6 @@ func (suite *BackendTestSuite) TestGetTransactionCount() {
 			hexutil.Uint64(0),
 		},
 		{
-			name:      "fail - indexer not ready",
-			accExists: false,
-			blockNum:  rpctypes.NewBlockNumber(big.NewInt(10000)),
-			registerMock: func(addr common.Address, bn rpctypes.BlockNumber) {
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
-			},
-			expPass:    false,
-			expTxCount: hexutil.Uint64(0),
-		},
-		{
 			name:      "fail - indexer returns error",
 			accExists: false,
 			blockNum:  rpctypes.NewBlockNumber(big.NewInt(10000)),
