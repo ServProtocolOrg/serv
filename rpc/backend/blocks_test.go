@@ -7,6 +7,10 @@ import (
 
 	"cosmossdk.io/math"
 
+	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
+	ethrpc "github.com/EscanBE/evermint/v12/rpc/types"
+	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cometbft/cometbft/abci/types"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -15,12 +19,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/trie"
-	"google.golang.org/grpc/metadata"
-
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	ethrpc "github.com/EscanBE/evermint/v12/rpc/types"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
 func (suite *BackendTestSuite) TestBlockNumber() {
@@ -31,41 +29,42 @@ func (suite *BackendTestSuite) TestBlockNumber() {
 		expPass        bool
 	}{
 		{
-			"fail - invalid block header height",
-			func() {
-				var header metadata.MD
-				height := int64(1)
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParamsInvalidHeight(queryClient, &header, height)
+			name: "pass - indexer indexed up to block 1",
+			registerMock: func() {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			0x0,
-			false,
+			expBlockNumber: 0x1,
+			expPass:        true,
 		},
 		{
-			"fail - invalid block header",
-			func() {
-				var header metadata.MD
-				height := int64(1)
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParamsInvalidHeader(queryClient, &header, height)
+			name: "pass - indexer indexed up to block 3",
+			registerMock: func() {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 3)
 			},
-			0x0,
-			false,
+			expBlockNumber: 0x3,
+			expPass:        true,
 		},
 		{
-			"pass - app state header height 1",
-			func() {
-				var header metadata.MD
-				height := int64(1)
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParams(queryClient, &header, height)
+			name: "fail - indexer not ready",
+			registerMock: func() {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
 			},
-			0x1,
-			true,
+			expPass: false,
+		},
+		{
+			name: "fail - indexer returns error",
+			registerMock: func() {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
+			},
+			expPass: false,
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 
@@ -169,9 +168,10 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, height)
 				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			false,
 			true,
@@ -195,15 +195,91 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, height)
 				RegisterParamsWithoutHeader(queryClient, height)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			false,
 			true,
+		},
+		{
+			name:        "fail - indexer not ready",
+			blockNumber: ethrpc.BlockNumber(1),
+			fullTx:      false,
+			baseFee:     sdk.NewInt(1).BigInt(),
+			validator:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			tx:          msgEthereumTx,
+			txBz:        bz,
+			registerMock: func(blockNum ethrpc.BlockNumber, baseFee math.Int, validator sdk.AccAddress, txBz []byte) {
+				height := blockNum.Int64()
+				client := suite.backend.clientCtx.Client.(*mocks.Client)
+				resBlock, _ = RegisterBlock(client, height, txBz)
+				blockRes, _ = RegisterBlockResults(client, blockNum.Int64())
+
+				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+				RegisterValidatorAccount(queryClient, validator)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
+			},
+			expNoop: false,
+			expPass: false,
+		},
+		{
+			name:        "fail - indexer returns error when fetching tx",
+			blockNumber: ethrpc.BlockNumber(1),
+			fullTx:      false,
+			baseFee:     sdk.NewInt(1).BigInt(),
+			validator:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			tx:          msgEthereumTx,
+			txBz:        bz,
+			registerMock: func(blockNum ethrpc.BlockNumber, baseFee math.Int, validator sdk.AccAddress, txBz []byte) {
+				height := blockNum.Int64()
+				client := suite.backend.clientCtx.Client.(*mocks.Client)
+				resBlock, _ = RegisterBlock(client, height, txBz)
+				blockRes, _ = RegisterBlockResults(client, blockNum.Int64())
+				RegisterConsensusParams(client, height)
+
+				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+				RegisterBaseFee(queryClient, baseFee)
+				RegisterValidatorAccount(queryClient, validator)
+
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHashErr(indexer, msgEthereumTx.AsTransaction().Hash())
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
+			},
+			expNoop: false,
+			expPass: false,
+		},
+		{
+			name:        "pass - indexer returns error when get latest block number",
+			blockNumber: ethrpc.BlockNumber(1),
+			fullTx:      false,
+			baseFee:     sdk.NewInt(1).BigInt(),
+			validator:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			tx:          msgEthereumTx,
+			txBz:        bz,
+			registerMock: func(blockNum ethrpc.BlockNumber, baseFee math.Int, validator sdk.AccAddress, txBz []byte) {
+				height := blockNum.Int64()
+				client := suite.backend.clientCtx.Client.(*mocks.Client)
+				resBlock, _ = RegisterBlock(client, height, txBz)
+				blockRes, _ = RegisterBlockResults(client, blockNum.Int64())
+				RegisterConsensusParams(client, height)
+
+				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+				RegisterBaseFee(queryClient, baseFee)
+				RegisterValidatorAccount(queryClient, validator)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
+			},
+			expNoop: false,
+			expPass: true,
 		},
 	}
 	for _, tc := range testCases {
@@ -326,9 +402,10 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, height)
 				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			false,
 			true,
@@ -353,15 +430,58 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, height)
 				RegisterParamsWithoutHeader(queryClient, height)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			false,
 			true,
+		},
+		{
+			name:      "fail - indexer not ready",
+			hash:      common.BytesToHash(block.Hash()),
+			fullTx:    true,
+			baseFee:   sdk.NewInt(1).BigInt(),
+			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			registerMock: func(hash common.Hash, baseFee math.Int, validator sdk.AccAddress, txBz []byte) {
+				height := int64(1)
+				client := suite.backend.clientCtx.Client.(*mocks.Client)
+				resBlock, _ = RegisterBlockByHash(client, hash, txBz)
+
+				blockRes, _ = RegisterBlockResults(client, height)
+
+				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+				RegisterValidatorAccount(queryClient, validator)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
+			},
+			expPass: false,
+		},
+		{
+			name:      "success - indexer returns error",
+			hash:      common.BytesToHash(block.Hash()),
+			fullTx:    true,
+			baseFee:   sdk.NewInt(1).BigInt(),
+			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			registerMock: func(hash common.Hash, baseFee math.Int, validator sdk.AccAddress, txBz []byte) {
+				height := int64(1)
+				client := suite.backend.clientCtx.Client.(*mocks.Client)
+				resBlock, _ = RegisterBlockByHash(client, hash, txBz)
+
+				blockRes, _ = RegisterBlockResults(client, height)
+				RegisterConsensusParams(client, height)
+
+				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+				RegisterBaseFee(queryClient, baseFee)
+				RegisterValidatorAccount(queryClient, validator)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
+			},
+			expPass: true,
 		},
 	}
 	for _, tc := range testCases {
@@ -587,25 +707,43 @@ func (suite *BackendTestSuite) TestTendermintBlockByNumber() {
 			true,
 		},
 		{
-			"fail - blockNum < 0 with app state height error",
+			"fail - blockNum < 0 with indexer returns error",
 			ethrpc.BlockNumber(-1),
 			func(_ ethrpc.BlockNumber) {
-				var header metadata.MD
-				appHeight := int64(1)
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParamsError(queryClient, &header, appHeight)
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
 			},
 			false,
 			false,
 		},
 		{
-			"pass - blockNum < 0 with app state height >= 1",
+			name:        "fail - blockNum < 0 with indexer not ready",
+			blockNumber: ethrpc.BlockNumber(-1),
+			registerMock: func(_ ethrpc.BlockNumber) {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
+			},
+			found:   false,
+			expPass: false,
+		},
+		{
+			name:        "fail - blockNum < 0 with indexer returns error",
+			blockNumber: ethrpc.BlockNumber(-1),
+			registerMock: func(_ ethrpc.BlockNumber) {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
+			},
+			found:   false,
+			expPass: false,
+		},
+		{
+			"pass - blockNum < 0 with indexed height >= 1",
 			ethrpc.BlockNumber(-1),
 			func(blockNum ethrpc.BlockNumber) {
-				var header metadata.MD
 				appHeight := int64(1)
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParams(queryClient, &header, appHeight)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, appHeight)
 
 				tmHeight := appHeight
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
@@ -947,9 +1085,10 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, height)
 				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			false,
 			true,
@@ -975,12 +1114,11 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, height)
 				RegisterParamsWithoutHeader(queryClient, height)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			true,
 			true,
@@ -1006,12 +1144,11 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, height)
 				RegisterParamsWithoutHeader(queryClient, height)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			true,
 			true,
@@ -1037,12 +1174,11 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParamsError(client, height)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, height)
 				RegisterParamsWithoutHeader(queryClient, height)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			true,
 			true,
@@ -1074,9 +1210,10 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, height)
 				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			false,
 			true,
@@ -1102,12 +1239,11 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, height)
 				RegisterParamsWithoutHeader(queryClient, height)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			true,
 			true,
@@ -1133,15 +1269,95 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
 
-				var header metadata.MD
-				RegisterParams(queryClient, &header, height)
 				RegisterParamsWithoutHeader(queryClient, height)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			true,
 			true,
+		},
+		{
+			name:      "fail - indexer not ready",
+			baseFee:   sdk.NewInt(1).BigInt(),
+			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			height:    int64(1),
+			resBlock: &tmrpctypes.ResultBlock{
+				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
+			},
+			blockRes: &tmrpctypes.ResultBlockResults{
+				Height:     1,
+				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+			},
+			fullTx: false,
+			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
+				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+				RegisterValidatorAccount(queryClient, validator)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErrNotReady(indexer)
+			},
+			expTxs:  false,
+			expPass: false,
+		},
+		{
+			name:      "pass - indexer returns error when getting latest block number",
+			baseFee:   sdk.NewInt(1).BigInt(),
+			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			height:    int64(1),
+			resBlock: &tmrpctypes.ResultBlock{
+				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
+			},
+			blockRes: &tmrpctypes.ResultBlockResults{
+				Height:     1,
+				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+			},
+			fullTx: true,
+			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
+				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+				RegisterBaseFee(queryClient, baseFee)
+				RegisterValidatorAccount(queryClient, validator)
+
+				client := suite.backend.clientCtx.Client.(*mocks.Client)
+				RegisterConsensusParams(client, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
+			},
+			expTxs:  true,
+			expPass: true,
+		},
+		{
+			name:      "fail - indexer returns error when getting tx by hash",
+			baseFee:   sdk.NewInt(1).BigInt(),
+			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			height:    int64(1),
+			resBlock: &tmrpctypes.ResultBlock{
+				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
+			},
+			blockRes: &tmrpctypes.ResultBlockResults{
+				Height:     1,
+				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+			},
+			fullTx: false,
+			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
+				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+				RegisterBaseFee(queryClient, baseFee)
+				RegisterValidatorAccount(queryClient, validator)
+
+				client := suite.backend.clientCtx.Client.(*mocks.Client)
+				RegisterConsensusParams(client, height)
+
+				RegisterParamsWithoutHeader(queryClient, height)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHashErr(indexer, msgEthereumTx.AsTransaction().Hash())
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
+			},
+			expTxs:  false,
+			expPass: false,
 		},
 	}
 	for _, tc := range testCases {
@@ -1150,6 +1366,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			tc.registerMock(sdk.NewIntFromBigInt(tc.baseFee), tc.validator, tc.height)
 
 			block, err := suite.backend.RPCBlockFromTendermintBlock(tc.resBlock, tc.blockRes, tc.fullTx)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				return
+			}
 
 			var expBlock map[string]interface{}
 			header := tc.resBlock.Block.Header
@@ -1180,10 +1403,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			)
 
 			if tc.expPass {
-				suite.Require().NoError(err)
 				suite.Equal(expBlock, block)
-			} else {
-				suite.Require().Error(err)
 			}
 		})
 	}

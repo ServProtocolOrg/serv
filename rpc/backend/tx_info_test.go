@@ -17,7 +17,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"google.golang.org/grpc/metadata"
 )
 
 func (suite *BackendTestSuite) TestGetTransactionByHash() {
@@ -570,10 +569,8 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 		{
 			"fail - Receipts do not match",
 			func() {
-				var header metadata.MD
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				RegisterParams(queryClient, &header, 1)
 				RegisterParamsWithoutHeader(queryClient, 1)
 				_, err := RegisterBlock(client, 1, txBz)
 				suite.Require().NoError(err)
@@ -620,6 +617,48 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 			} else {
 				suite.NotEqual(tc.expTxReceipt, txReceipt)
 			}
+		})
+	}
+
+	testCasesIndexerErr := []struct {
+		name         string
+		registerMock func(txHash common.Hash)
+		tx           *evmtypes.MsgEthereumTx
+		expErr       bool
+	}{
+		{
+			name: "fail - indexer not ready",
+			registerMock: func(txHash common.Hash) {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHashErrNotReady(indexer, txHash)
+			},
+			tx:     msgEthereumTx,
+			expErr: true,
+		},
+		{
+			name: "fail - indexer returns error",
+			registerMock: func(txHash common.Hash) {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetByTxHashErr(indexer, txHash)
+			},
+			tx:     msgEthereumTx,
+			expErr: false,
+		},
+	}
+	for _, tc := range testCasesIndexerErr {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			signedTxHash := common.HexToHash(tc.tx.Hash)
+			tc.registerMock(signedTxHash)
+
+			receipt, err := suite.backend.GetTransactionReceipt(signedTxHash)
+			if tc.expErr {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().NoError(err)
+			}
+			suite.Nil(receipt)
 		})
 	}
 }
