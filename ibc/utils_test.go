@@ -5,7 +5,6 @@ import (
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/x/claims/types"
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -204,17 +203,17 @@ func TestGetTransferAmount(t *testing.T) {
 			false,
 		},
 		{
-			"valid - IBCTriggerAmt",
+			"valid - any amount",
 			channeltypes.Packet{
 				Data: transfertypes.ModuleCdc.MustMarshalJSON(
 					&transfertypes.FungibleTokenPacketData{
 						Sender:   "cosmos1qql8ag4cluz6r4dz28p3w00dnc9w8ueulg2gmc",
 						Receiver: marker.ReplaceAbleAddress("evm1x2w87cvt5mqjncav4lxy8yfreynn273xe08fl7"),
-						Amount:   types.IBCTriggerAmt,
+						Amount:   "1",
 					},
 				),
 			},
-			types.IBCTriggerAmt,
+			"1",
 			false,
 		},
 	}

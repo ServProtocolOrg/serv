@@ -146,15 +146,6 @@ func main() {
 	newGitOwnerAndRepo := fmt.Sprintf("%s/%s", splNewGitHub[len(splNewGitHub)-2], splNewGitHub[len(splNewGitHub)-1])
 	newGitHubWithoutRepo := strings.TrimSuffix(newGitHubWithoutScheme, fmt.Sprintf("/%s", splNewGitHub[len(splNewGitHub)-1]))
 
-	bytesOfClaimsModuleAccount, err := hex.DecodeString("A61808Fe40fEb8B3433778BBC2ecECCAA47c8c47")
-	if err != nil {
-		panic(err)
-	}
-	newClaimModuleAccount, err := bech32.ConvertAndEncode(constants.Bech32Prefix, bytesOfClaimsModuleAccount)
-	if err != nil {
-		panic(err)
-	}
-
 	anyFiles := getFileListRecursive()
 	goFiles := getFileListRecursive("go")
 
@@ -175,8 +166,6 @@ func main() {
 	for _, shellFile := range getFileListRecursive("sh", "bat") {
 		sed(shellFile, EvermintOg_BaseDenom, constants.BaseDenom)
 		sed(shellFile, EvermintOg_ApplicationBinaryName, constants.ApplicationBinaryName)
-		//goland:noinspection SpellCheckingInspection
-		sed(shellFile, "evm15cvq3ljql6utxseh0zau9m8ve2j8erz80qzkas", newClaimModuleAccount)
 	}
 
 	for _, goFile := range goFiles {

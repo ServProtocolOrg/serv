@@ -7,9 +7,7 @@ import (
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/contracts"
 	ibctesting "github.com/EscanBE/evermint/v12/ibc/testing"
-	"github.com/EscanBE/evermint/v12/testutil"
 	teststypes "github.com/EscanBE/evermint/v12/types/tests"
-	claimstypes "github.com/EscanBE/evermint/v12/x/claims/types"
 	"github.com/EscanBE/evermint/v12/x/erc20/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -214,72 +212,6 @@ var _ = Describe("Convert receiving IBC to Erc20", Ordered, func() {
 		})
 	})
 
-	Describe("Performing claims with registered coin", func() {
-		BeforeEach(func() {
-			s.app.Erc20Keeper.SetParams(s.EvermintChain.GetContext(), types.DefaultParams()) //nolint:errcheck
-
-			sender = s.IBCOsmosisChain.SenderAccount.GetAddress().String()
-			// receiver address is on Osmosis Chain also,
-			// but funds are transferred to this address in Evermint chain
-			receiver = s.EvermintChain.SenderAccount.GetAddress().String()
-			senderAcc = sdk.MustAccAddressFromBech32(sender)
-			receiverAcc = sdk.MustAccAddressFromBech32(receiver)
-
-			// Register uosmo pair
-			var err error
-			pair, err = s.app.Erc20Keeper.RegisterCoin(s.EvermintChain.GetContext(), osmoMeta)
-			s.Require().NoError(err)
-
-			// Authorize channel-0 for claims (Evermint-Osmosis)
-			params := s.app.ClaimsKeeper.GetParams(s.EvermintChain.GetContext())
-			params.AuthorizedChannels = []string{
-				"channel-0",
-			}
-			s.app.ClaimsKeeper.SetParams(s.EvermintChain.GetContext(), params) //nolint:errcheck
-		})
-		It("it should perform the claim and convert the received tokens", func() {
-			// Register claims record
-			initialClaimAmount := sdk.NewInt(100)
-			claimableAmount := sdk.NewInt(25)
-			s.app.ClaimsKeeper.SetClaimsRecord(s.EvermintChain.GetContext(), senderAcc, claimstypes.ClaimsRecord{
-				InitialClaimableAmount: initialClaimAmount,
-				ActionsCompleted:       []bool{true, true, true, false},
-			})
-
-			// escrow coins in module
-			coins := sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, claimableAmount))
-			err := testutil.FundModuleAccount(s.EvermintChain.GetContext(), s.app.BankKeeper, claimstypes.ModuleName, coins)
-			s.Require().NoError(err)
-
-			receiverInitialNativeCoinBalance := s.app.BankKeeper.GetBalance(s.EvermintChain.GetContext(), receiverAcc, constants.BaseDenom)
-
-			uosmoInitialBalance := s.IBCOsmosisChain.GetSimApp().BankKeeper.GetBalance(s.IBCOsmosisChain.GetContext(), senderAcc, "uosmo")
-
-			// Send 'uosmo' from Osmosis address with claims to Evermint address
-			// send the corresponding amount to trigger the claim
-			amount, _ := strconv.ParseInt(claimstypes.IBCTriggerAmt, 10, 64)
-			s.SendAndReceiveMessage(s.pathOsmosisEvermint, s.IBCOsmosisChain, "uosmo", amount, sender, receiver, 1, "")
-
-			// should trigger claims logic and send native coin from claims to receiver
-
-			// ERC-20 balance should be the transferred amount
-			balanceTokenAfter := s.app.Erc20Keeper.BalanceOf(s.EvermintChain.GetContext(), contracts.ERC20MinterBurnerDecimalsContract.ABI, pair.GetERC20Contract(), common.BytesToAddress(receiverAcc.Bytes()))
-			s.Require().Equal(amount, balanceTokenAfter.Int64())
-
-			// IBC coin balance should be zero
-			ibcCoinsBalance := s.app.BankKeeper.GetBalance(s.EvermintChain.GetContext(), receiverAcc, teststypes.UosmoIbcdenom)
-			s.Require().Equal(int64(0), ibcCoinsBalance.Amount.Int64())
-
-			// validate that Osmosis address balance is correct
-			uosmoFinalBalance := s.IBCOsmosisChain.GetSimApp().BankKeeper.GetBalance(s.IBCOsmosisChain.GetContext(), senderAcc, "uosmo")
-			s.Require().Equal(uosmoInitialBalance.Amount.Int64()-amount, uosmoFinalBalance.Amount.Int64())
-
-			// validate that Receiver address on Evermint got the claims tokens
-			receiverFinalNativeCoinBalance := s.app.BankKeeper.GetBalance(s.EvermintChain.GetContext(), receiverAcc, constants.BaseDenom)
-
-			s.Require().Equal(receiverInitialNativeCoinBalance.Amount.Add(claimableAmount).Sub(sendBackCoinsFee), receiverFinalNativeCoinBalance.Amount)
-		})
-	})
 	Describe("registered erc20", func() {
 		BeforeEach(func() { //nolint:dupl
 			erc20params := types.DefaultParams()

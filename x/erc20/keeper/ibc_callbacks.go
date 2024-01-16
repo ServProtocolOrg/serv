@@ -56,13 +56,17 @@ func (k Keeper) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	claimsParams := k.claimsKeeper.GetParams(ctx)
+	/*
+		This is a special case where the sender and recipient are the same
+		that can fall into the problem identified in ticket #79.
 
-	// if sender == recipient, and is not from an EVM Channel recovery was executed
-	if sender.Equals(recipient) && !claimsParams.IsEVMChannel(packet.DestinationChannel) {
-		// Continue to the next IBC middleware by returning the original ACK.
-		return ack
-	}
+		At this time, we decided to keep conversion.
+		However, we should implement another method to helps user take their funds back.
+
+		if sender.Equals(recipient) && !IsEVMChannel(packet.DestinationChannel) {
+			return ack
+		}
+	*/
 
 	senderAcc := k.accountKeeper.GetAccount(ctx, sender)
 

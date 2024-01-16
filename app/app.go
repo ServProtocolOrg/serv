@@ -129,9 +129,6 @@ import (
 
 	"github.com/EscanBE/evermint/v12/app/ante"
 	"github.com/EscanBE/evermint/v12/app/upgrades/v3_sample"
-	"github.com/EscanBE/evermint/v12/x/claims"
-	claimskeeper "github.com/EscanBE/evermint/v12/x/claims/keeper"
-	claimstypes "github.com/EscanBE/evermint/v12/x/claims/types"
 	"github.com/EscanBE/evermint/v12/x/erc20"
 	erc20client "github.com/EscanBE/evermint/v12/x/erc20/client"
 	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
@@ -205,7 +202,6 @@ var (
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
 		erc20.AppModuleBasic{},
-		claims.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 	)
 
@@ -221,7 +217,6 @@ var (
 		icatypes.ModuleName:            nil,
 		evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
 		erc20types.ModuleName:          {authtypes.Minter, authtypes.Burner},
-		claimstypes.ModuleName:         nil,
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -280,7 +275,6 @@ type Evermint struct {
 	FeeMarketKeeper feemarketkeeper.Keeper
 
 	// Evermint keepers
-	ClaimsKeeper  *claimskeeper.Keeper
 	Erc20Keeper   erc20keeper.Keeper
 	VestingKeeper vestingkeeper.Keeper
 
@@ -339,7 +333,7 @@ func NewEvermint(
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		// evermint module keys
 		erc20types.StoreKey,
-		claimstypes.StoreKey, vestingtypes.StoreKey,
+		vestingtypes.StoreKey,
 	)
 
 	// Add the EVM transient store key
@@ -454,19 +448,13 @@ func NewEvermint(
 
 	// Evermint Keeper
 
-	chainApp.ClaimsKeeper = claimskeeper.NewKeeper(
-		appCodec, keys[claimstypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName),
-		chainApp.AccountKeeper, chainApp.BankKeeper, stakingKeeper, chainApp.DistrKeeper, chainApp.IBCKeeper.ChannelKeeper,
-	)
-
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	// NOTE: Distr, Slashing and Claim must be created before calling the Hooks method to avoid returning a Keeper without its table generated
+	// NOTE: Distr and Slashing must be created before calling the Hooks method to avoid returning a Keeper without its table generated
 	stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(
 			chainApp.DistrKeeper.Hooks(),
 			chainApp.SlashingKeeper.Hooks(),
-			chainApp.ClaimsKeeper.Hooks(),
 		),
 	)
 
@@ -479,34 +467,30 @@ func NewEvermint(
 
 	chainApp.Erc20Keeper = erc20keeper.NewKeeper(
 		keys[erc20types.StoreKey], appCodec, authtypes.NewModuleAddress(govtypes.ModuleName),
-		chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.EvmKeeper, chainApp.StakingKeeper, chainApp.ClaimsKeeper,
+		chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.EvmKeeper, chainApp.StakingKeeper,
 	)
 
 	chainApp.GovKeeper = *govKeeper.SetHooks(
 		govtypes.NewMultiGovHooks(
-			chainApp.ClaimsKeeper.Hooks(),
+		//
 		),
 	)
 
 	chainApp.EvmKeeper = chainApp.EvmKeeper.SetHooks(
 		evmkeeper.NewMultiEvmHooks(
 			chainApp.Erc20Keeper.Hooks(),
-			chainApp.ClaimsKeeper.Hooks(),
 		),
 	)
 
 	chainApp.TransferKeeper = transferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], chainApp.GetSubspace(ibctransfertypes.ModuleName),
-		chainApp.ClaimsKeeper, // ICS4 Wrapper: claims IBC middleware
+		chainApp.IBCKeeper.ChannelKeeper, // No ICS4 wrapper
 		chainApp.IBCKeeper.ChannelKeeper, &chainApp.IBCKeeper.PortKeeper,
 		chainApp.AccountKeeper, chainApp.BankKeeper, scopedTransferKeeper,
 		chainApp.Erc20Keeper, // Add ERC20 Keeper for ERC20 transfers
 	)
 
 	// NOTE: app.Erc20Keeper is already initialized elsewhere
-
-	// Set the ICS4 wrappers for custom module middlewares
-	chainApp.ClaimsKeeper.SetICS4Wrapper(chainApp.IBCKeeper.ChannelKeeper)
 
 	// Override the ICS20 app module
 	transferModule := transfer.NewAppModule(chainApp.TransferKeeper)
@@ -515,7 +499,7 @@ func NewEvermint(
 	chainApp.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, chainApp.keys[icahosttypes.StoreKey],
 		chainApp.GetSubspace(icahosttypes.SubModuleName),
-		chainApp.ClaimsKeeper,
+		chainApp.IBCKeeper.ChannelKeeper,
 		chainApp.IBCKeeper.ChannelKeeper,
 		&chainApp.IBCKeeper.PortKeeper,
 		chainApp.AccountKeeper,
@@ -531,21 +515,19 @@ func NewEvermint(
 
 		transfer stack contains (from bottom to top):
 			- ERC-20 Middleware
-		 	- Airdrop Claims Middleware
 			- IBC Transfer
 
 		SendPacket, since it is originating from the application to core IBC:
-		 	transferKeeper.SendPacket -> claim.SendPacket -> erc20.SendPacket -> channel.SendPacket
+		 	transferKeeper.SendPacket -> erc20.SendPacket -> channel.SendPacket
 
 		RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-			channel.RecvPacket -> erc20.OnRecvPacket -> claim.OnRecvPacket -> transfer.OnRecvPacket
+			channel.RecvPacket -> erc20.OnRecvPacket -> transfer.OnRecvPacket
 	*/
 
 	// create IBC module from top to bottom of stack
 	var transferStack porttypes.IBCModule
 
 	transferStack = transfer.NewIBCModule(chainApp.TransferKeeper)
-	transferStack = claims.NewIBCMiddleware(*chainApp.ClaimsKeeper, transferStack)
 	transferStack = erc20.NewIBCMiddleware(chainApp.Erc20Keeper, transferStack)
 
 	// Create static IBC router, add transfer route, then set and seal it
@@ -603,8 +585,6 @@ func NewEvermint(
 		// Evermint app modules
 		erc20.NewAppModule(chainApp.Erc20Keeper, chainApp.AccountKeeper,
 			chainApp.GetSubspace(erc20types.ModuleName)),
-		claims.NewAppModule(appCodec, *chainApp.ClaimsKeeper,
-			chainApp.GetSubspace(claimstypes.ModuleName)),
 		vesting.NewAppModule(chainApp.VestingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, *chainApp.StakingKeeper),
 	)
 
@@ -638,7 +618,6 @@ func NewEvermint(
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
 		erc20types.ModuleName,
-		claimstypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -649,7 +628,6 @@ func NewEvermint(
 		stakingtypes.ModuleName,
 		evmtypes.ModuleName,
 		feemarkettypes.ModuleName,
-		claimstypes.ModuleName,
 		// no-op modules
 		ibcexported.ModuleName,
 		ibctransfertypes.ModuleName,
@@ -683,8 +661,6 @@ func NewEvermint(
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
-		// NOTE: staking requires the claiming hook
-		claimstypes.ModuleName,
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
 		minttypes.ModuleName,
@@ -1041,7 +1017,6 @@ func initParamsKeeper(
 	paramsKeeper.Subspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())
 	// evermint subspaces
 	paramsKeeper.Subspace(erc20types.ModuleName)
-	paramsKeeper.Subspace(claimstypes.ModuleName)
 	return paramsKeeper
 }
 
