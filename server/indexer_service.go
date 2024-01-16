@@ -82,7 +82,8 @@ func (eis *EVMIndexerService) OnStart() error {
 		lastIndexedBlock = latestBlock
 	} else if lastIndexedBlock < status.SyncInfo.EarliestBlockHeight {
 		lastIndexedBlock = status.SyncInfo.EarliestBlockHeight
-		// kinda unsafe, but we don't have a better way to do this
+		// Kinda unsafe, but we don't have a better way to do this.
+		// In-case `EarliestBlockHeight` is zero one some nodes, it will be handled by the failure tracker with threshold.
 	}
 
 	var isIndexerMarkedReady bool
@@ -92,7 +93,7 @@ func (eis *EVMIndexerService) OnStart() error {
 		if cnt, found := startupIndexBlockFailureTracker[h]; found {
 			cnt++
 			startupIndexBlockFailureTracker[h] = cnt
-			if cnt >= startupIndexBlockFailureThreshold {
+			if cnt > startupIndexBlockFailureThreshold {
 				shouldSkip = true
 			}
 		} else {
