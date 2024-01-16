@@ -653,7 +653,7 @@ func NewEvermint(
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	// NOTE: Capability module must occur first so that it can initialize any capabilities
-	// so that other modules that want to create or claim capabilities afterwards in InitChain
+	// so that other modules that want to create in InitChain
 	// can do so safely.
 	chainApp.mm.SetOrderInitGenesis(
 		// SDK modules
