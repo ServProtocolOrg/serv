@@ -93,6 +93,9 @@ func NewIndexTxCmd() *cobra.Command {
 						return err
 					}
 				}
+				idxer.Ready()
+
+				break
 			case "forward":
 				latest, err := idxer.LastIndexedBlock()
 				if err != nil {
@@ -107,6 +110,9 @@ func NewIndexTxCmd() *cobra.Command {
 						return err
 					}
 				}
+				idxer.Ready()
+
+				break
 			default:
 				return fmt.Errorf("unknown direction %s", args[0])
 			}

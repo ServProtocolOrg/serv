@@ -3,6 +3,7 @@ package indexer
 import (
 	"fmt"
 	"github.com/EscanBE/evermint/v12/constants"
+	"sync"
 
 	errorsmod "cosmossdk.io/errors"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
@@ -30,23 +31,38 @@ const (
 
 var _ evertypes.EVMTxIndexer = &KVIndexer{}
 
-// KVIndexer implements a eth tx indexer on a KV db.
+// KVIndexer implements an ETH-Tx indexer on a KV db.
 type KVIndexer struct {
 	db        dbm.DB
 	logger    log.Logger
 	clientCtx client.Context
+
+	mu                      *sync.RWMutex
+	ready                   bool
+	lastRequestIndexedBlock int64 // indexer does not index empty block so LastIndexedBlock() might be different from last request indexed block.
 }
 
 // NewKVIndexer creates the KVIndexer
 func NewKVIndexer(db dbm.DB, logger log.Logger, clientCtx client.Context) *KVIndexer {
-	return &KVIndexer{db, logger, clientCtx}
+	return &KVIndexer{
+		db:                      db,
+		logger:                  logger,
+		clientCtx:               clientCtx,
+		lastRequestIndexedBlock: -1,
+
+		mu:    &sync.RWMutex{},
+		ready: false,
+	}
 }
 
-// IndexBlock index all the eth txs in a block through the following steps:
-// - Iterates over all of the Txs in Block
+// IndexBlock indexes all ETH Txs of the block.
+// Notes: no guarantee data is flushed into database after this function returns, it might be flushed at later point.
+//
+// Steps:
+// - Iterates over all-of-the Txs in Block
 // - Parses eth Tx infos from cosmos-sdk events for every TxResult
 // - Iterates over all the messages of the Tx
-// - Builds and stores a indexer.TxResult based on parsed events for every message
+// - Builds and stores a `indexer.TxResult` based on parsed events for every message
 func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.ResponseDeliverTx) error {
 	height := block.Header.Height
 
@@ -118,10 +134,30 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 	if err := batch.Write(); err != nil {
 		return errorsmod.Wrapf(err, "IndexBlock %d, write batch", block.Height)
 	}
+
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	if kv.lastRequestIndexedBlock < height {
+		kv.lastRequestIndexedBlock = height
+	}
+
 	return nil
 }
 
-// LastIndexedBlock returns the latest indexed block number, returns -1 if db is empty
+func (kv *KVIndexer) Ready() {
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	kv.ready = true
+}
+
+func (kv *KVIndexer) IsReady() bool {
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+	return kv.ready
+}
+
+// LastIndexedBlock returns the last block number which was indexed and flushed into database.
+// Returns -1 if db is empty.
 func (kv *KVIndexer) LastIndexedBlock() (int64, error) {
 	return LoadLastBlock(kv.db)
 }
@@ -133,6 +169,28 @@ func (kv *KVIndexer) FirstIndexedBlock() (int64, error) {
 
 // GetByTxHash finds eth tx by eth tx hash
 func (kv *KVIndexer) GetByTxHash(hash common.Hash) (*evertypes.TxResult, error) {
+	return kv.getByTxHash(hash)
+}
+
+// GetByBlockAndIndex finds eth tx by block number and eth tx index
+func (kv *KVIndexer) GetByBlockAndIndex(blockNumber int64, txIndex int32) (*evertypes.TxResult, error) {
+	return kv.getByBlockAndIndex(blockNumber, txIndex)
+}
+
+// GetLastRequestIndexedBlock returns the block height of the latest success called to IndexBlock()
+func (kv *KVIndexer) GetLastRequestIndexedBlock() (int64, error) {
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+
+	if kv.lastRequestIndexedBlock == -1 {
+		return LoadLastBlock(kv.db)
+	}
+
+	return kv.lastRequestIndexedBlock, nil
+}
+
+// getByTxHash finds eth tx by eth tx hash
+func (kv *KVIndexer) getByTxHash(hash common.Hash) (*evertypes.TxResult, error) {
 	bz, err := kv.db.Get(TxHashKey(hash))
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "GetByTxHash %s", hash.Hex())
@@ -148,7 +206,7 @@ func (kv *KVIndexer) GetByTxHash(hash common.Hash) (*evertypes.TxResult, error) 
 }
 
 // GetByBlockAndIndex finds eth tx by block number and eth tx index
-func (kv *KVIndexer) GetByBlockAndIndex(blockNumber int64, txIndex int32) (*evertypes.TxResult, error) {
+func (kv *KVIndexer) getByBlockAndIndex(blockNumber int64, txIndex int32) (*evertypes.TxResult, error) {
 	bz, err := kv.db.Get(TxIndexKey(blockNumber, txIndex))
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "GetByBlockAndIndex %d %d", blockNumber, txIndex)
@@ -156,7 +214,7 @@ func (kv *KVIndexer) GetByBlockAndIndex(blockNumber int64, txIndex int32) (*ever
 	if len(bz) == 0 {
 		return nil, fmt.Errorf("tx not found, block: %d, eth-index: %d", blockNumber, txIndex)
 	}
-	return kv.GetByTxHash(common.BytesToHash(bz))
+	return kv.getByTxHash(common.BytesToHash(bz))
 }
 
 // TxHashKey returns the key for db entry: `tx hash -> tx result struct`
