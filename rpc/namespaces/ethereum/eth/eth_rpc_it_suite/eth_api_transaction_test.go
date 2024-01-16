@@ -1,4 +1,4 @@
-package demo
+package eth_rpc_it_suite
 
 import (
 	"encoding/hex"
@@ -636,6 +636,112 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByBlockNumberAndHashAndIndex() 
 		suite.Equal(sentTxHash, rpcTx.Hash)
 
 		fetchAndCompareWithGetTransactionByHash(rpcTx)
+	})
+
+	suite.Run("get tx by index not found", func() {
+		deployer := suite.CITS.WalletAccounts.Number(1)
+
+		_, sentEvmTx1, _, err := suite.CITS.TxDeploy1StorageContract(deployer)
+		suite.Require().NoError(err)
+
+		suite.CITS.Commit() // commit to passive trigger EVM Tx indexer
+
+		// shift some blocks
+		for i := 0; i < int(rand.Uint32()%5)+2; i++ {
+			suite.CITS.Commit()
+		}
+
+		_, sentEvmTx2, _, err := suite.CITS.TxDeploy1StorageContract(deployer)
+		suite.Require().NoError(err)
+
+		suite.CITS.Commit() // commit to passive trigger EVM Tx indexer
+
+		{
+			// shift two more blocks
+			suite.CITS.Commit()
+			suite.CITS.Commit()
+		}
+
+		blockHeightWithoutTxs := suite.CITS.GetLatestBlockHeight() - 1
+		blockWithoutTxs, err := suite.GetEthPublicAPI().GetBlockByNumber(rpctypes.BlockNumber(blockHeightWithoutTxs), false)
+		suite.Require().NoError(err)
+		suite.Require().NotNil(blockWithoutTxs)
+		blockHashOfBlockWithoutTxs := common.BytesToHash(blockWithoutTxs["hash"].(hexutil.Bytes))
+
+		// verifies that txs are successfully indexed
+		sentTxHash1 := sentEvmTx1.AsTransaction().Hash()
+		rpcTx1, err := suite.GetEthPublicAPI().GetTransactionByHash(sentTxHash1)
+		suite.Require().NoError(err)
+		suite.Require().NotNil(rpcTx1)
+		suite.Require().NotNil(rpcTx1.BlockHash)
+		suite.Equal(sentTxHash1, rpcTx1.Hash)
+
+		sentTxHash2 := sentEvmTx2.AsTransaction().Hash()
+		rpcTx2, err := suite.GetEthPublicAPI().GetTransactionByHash(sentTxHash2)
+		suite.Require().NoError(err)
+		suite.Require().NotNil(rpcTx2)
+		suite.Require().NotNil(rpcTx2.BlockHash)
+		suite.Equal(sentTxHash2, rpcTx2.Hash)
+
+		suite.Require().NotEqual(rpcTx1.BlockHash.Hex(), rpcTx2.BlockHash.Hex(), "txs must be processed in different blocks")
+
+		assertValidResult := func(sourceRpcTx, gotRpcTx *rpctypes.RPCTransaction) {
+			suite.True(reflect.DeepEqual(sourceRpcTx, gotRpcTx))
+		}
+
+		// verifies that correct query will return correct result
+
+		// GetTransactionByBlockNumberAndIndex
+		testRpcTx1, err := suite.GetEthPublicAPI().GetTransactionByBlockNumberAndIndex(rpctypes.BlockNumber(rpcTx1.BlockNumber.ToInt().Int64()), hexutil.Uint(0))
+		suite.Require().NoError(err)
+		assertValidResult(rpcTx1, testRpcTx1)
+
+		testRpcTx2, err := suite.GetEthPublicAPI().GetTransactionByBlockNumberAndIndex(rpctypes.BlockNumber(rpcTx2.BlockNumber.ToInt().Int64()), hexutil.Uint(0))
+		suite.Require().NoError(err)
+		assertValidResult(rpcTx2, testRpcTx2)
+
+		//GetTransactionByBlockHashAndIndex
+		testRpcTx1, err = suite.GetEthPublicAPI().GetTransactionByBlockHashAndIndex(*rpcTx1.BlockHash, hexutil.Uint(0))
+		suite.Require().NoError(err)
+		assertValidResult(rpcTx1, testRpcTx1)
+
+		testRpcTx2, err = suite.GetEthPublicAPI().GetTransactionByBlockHashAndIndex(*rpcTx2.BlockHash, hexutil.Uint(0))
+		suite.Require().NoError(err)
+		assertValidResult(rpcTx2, testRpcTx2)
+
+		// verifies that incorrect query will return nil result
+
+		// Out of bound index
+
+		// GetTransactionByBlockNumberAndIndex
+		testRpcTx1QueryByOutOfBoundIndex, err := suite.GetEthPublicAPI().GetTransactionByBlockNumberAndIndex(rpctypes.BlockNumber(rpcTx1.BlockNumber.ToInt().Int64()), hexutil.Uint(1))
+		suite.Require().NoError(err)
+		suite.Nil(testRpcTx1QueryByOutOfBoundIndex)
+
+		testRpcTx2QueryByOutOfBoundIndex, err := suite.GetEthPublicAPI().GetTransactionByBlockNumberAndIndex(rpctypes.BlockNumber(rpcTx2.BlockNumber.ToInt().Int64()), hexutil.Uint(1))
+		suite.Require().NoError(err)
+		suite.Nil(testRpcTx2QueryByOutOfBoundIndex)
+
+		//GetTransactionByBlockHashAndIndex
+		testRpcTx1QueryByOutOfBoundIndex, err = suite.GetEthPublicAPI().GetTransactionByBlockHashAndIndex(*rpcTx1.BlockHash, hexutil.Uint(1))
+		suite.Require().NoError(err)
+		suite.Nil(testRpcTx1QueryByOutOfBoundIndex)
+
+		testRpcTx2QueryByOutOfBoundIndex, err = suite.GetEthPublicAPI().GetTransactionByBlockHashAndIndex(*rpcTx2.BlockHash, hexutil.Uint(1))
+		suite.Require().NoError(err)
+		suite.Nil(testRpcTx2QueryByOutOfBoundIndex)
+
+		// Not correct block number & hash
+
+		// GetTransactionByBlockNumberAndIndex
+		testRpcTxQueryByNotCorrectBlockNumber, err := suite.GetEthPublicAPI().GetTransactionByBlockNumberAndIndex(rpctypes.BlockNumber(blockHeightWithoutTxs), hexutil.Uint(0))
+		suite.Require().NoError(err)
+		suite.Nil(testRpcTxQueryByNotCorrectBlockNumber)
+
+		//GetTransactionByBlockHashAndIndex
+		testRpcTxQueryByNotCorrectBlockHash, err := suite.GetEthPublicAPI().GetTransactionByBlockHashAndIndex(blockHashOfBlockWithoutTxs, hexutil.Uint(0))
+		suite.Require().NoError(err)
+		suite.Nil(testRpcTxQueryByNotCorrectBlockHash)
 	})
 }
 

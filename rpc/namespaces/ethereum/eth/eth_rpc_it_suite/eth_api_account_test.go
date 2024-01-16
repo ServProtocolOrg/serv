@@ -1,4 +1,4 @@
-package demo
+package eth_rpc_it_suite
 
 import (
 	"context"
