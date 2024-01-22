@@ -63,8 +63,8 @@ servnode convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 
 *(serv_43970-1)*
 
-> Genesis file [Published](https://github.com/servprotocolorg/servermint/raw/main/Testnet/genesis.json)
-> Peers list [Published](https://github.com/servprotocolorg/servermint/blob/main/Testnet/peers.txt)
+> Genesis file [Published](https://github.com/servprotocolorg/serv/releases/download/v12.2.3/genesis.json)
+> Peers list [Published](https://github.com/servprotocolorg/serv/releases/download/v12.2.3/seeds.txt)
 
 ## Hardware Requirements
 
@@ -86,30 +86,29 @@ servnode convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 
 **If using Ubuntu:**
 
-Install all dependencies:
+### Install all dependencies:
 
 `sudo apt-get update 
 sudo apt-get -y upgrade`
 
-Install via apt
+#### Install via apt
 `sudo apt install build-essential git vim jq libleveldb-dev make gcc`
 
-Or install via apt-get individually:
+#### Or install via apt-get individually:
 * build-essential : `sudo apt-get install build-essential`
 * libleveldb-dev : `sudo apt-get install libleveldb-dev`
 * jq : `sudo apt-get install jq`
 * git: `sudo apt-get install git`
 * gcc: `sudo apt-get install gcc`
 * make: `sudo apt-get install make`
-* vim: `sudo apt-get install vim`
+
 
 [____
-**If using Arch Linux:**
+#### **If using Arch Linux:**
 * jq: `pacman -S jq`
 * git: `pacman -S git`
 * gcc: `pacman -S gcc`
 * make: `pacman -S make`
-* vim: `pacman -S vim`
 ____]
 
 ## Install Go
@@ -127,31 +126,13 @@ Install GO locally
 
 Create your validator's directories to compile, build and run from
 `mkdir -p $HOME/go/src -p $HOME/go/pkg -p $HOME/go/bin`
+
 Add usr/local Go bin and your Validators go/bin to .bashrc 
 `echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> $HOME/.bashrc`
-
 `echo "export GOPATH=$HOME/go" >> $HOME/.bashrc`
-
-Scroll the bottom of the file and add the following:
-`# golang
-export GOROOT=/usr/local/go
-export GOPATH=$HOME/.go
-export GOBIN=$PATH:$GOPATH/bin:$GOROOT/bin`
-
-[____
-**Not required** but a helpful custom setting is adding custom flags for ls to get better details by default by adding the following to .bashrc as well:
-`# ls
-alias ls="ls -avhl --color=auto --group-directories-first"`
-____]
-
-save .bashrc
-`:wq`
 
 reload the .bashrc locally
 `source .bashrc`
-
-test it locally
-`echo $GOBIN`
 
 ## Install servnode binaries
 
@@ -207,18 +188,20 @@ If this runs successfully, it should dump a blob of JSON to the terminal.
 
 Download the Genesis file: 
 
-`wget https://raw.githubusercontent.com/servprotocolorg/serv/genesis/Networks/Testnet/genesis.json -P $HOME/.servnode/config/` 
+`wget https://github.com/servprotocolorg/serv/releases/download/v12.2.3/genesis.json -P $HOME/.serv/config/` 
 
-> _**Note:** If you later get `Error: couldn't read GenesisDoc file: open /root/.servnode/config/genesis.json: no such file or directory` put the genesis.json file wherever it wants instead, such as:
+> _**Note:** If you later get `Error: couldn't read GenesisDoc file: open /root/.serv/config/genesis.json: no such file or directory` put the genesis.json file wherever it wants instead, such as:
 > 
-> `sudo wget https://github.com/servprotocolorg/serv/raw/main/Mainnet/genesis.json -P/root/.servnode/config/`
+> `sudo wget https://github.com/servprotocolorg/serv/releases/download/v12.2.3/genesis.json -P/root/.serv/config/`
 
-Edit the minimum-gas-prices in `${HOME}/.servnode/config/app.toml`:
+Edit the minimum-gas-prices in `${HOME}/.serv/config/app.toml`:
 
-`sed -i 's/minimum-gas-prices = "0aservo"/minimum-gas-prices = "0.0001aservo"/g' $HOME/.servnode/config/app.toml`
+`sed -i 's/minimum-gas-prices = "0aservo"/minimum-gas-prices = "0.0001aservo"/g' $HOME/.serv/config/app.toml`
 
-Add persistent peers to `$HOME/.servnode/config/config.toml`:
-`sed -i 's/persistent_peers = ""/persistent_peers = "ec770XXXXXXXXXXXXXXXXXXXXXXXXXX0b010b293@164.90.134.106:26656"/g' $HOME/.servnode/config/config.toml`
+Add persistent peers to `$HOME/.serv/config/config.toml`:
+
+You can find these at 
+`https://github.com/servprotocolorg/serv/releases/download/v12.2.3/seeds.txt`
 
 ### Set `servnode` to run automatically
 
@@ -234,9 +217,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=root
-WorkingDirectory=/root/
-ExecStart=/root/go/bin/servnode start --trace --log_level info --json-rpc.api eth,txpool,net,debug,web3 --api.enable
+User=servuser
+WorkingDirectory=/home/servuser/go/bin
+ExecStart=/home/servuser/go/bin/servnode start --trace --log_level info --json-rpc.api eth,txpool,net,debug,web3 --api.enable
 Restart=on-failure
 StartLimitInterval=0
 RestartSec=3
