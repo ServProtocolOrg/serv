@@ -54,6 +54,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (cleanup) [#92](https://github.com/EscanBE/evermint/pull/92) Cleanup un-used `x/evm` and `x/erc20` types
 - (indexer) [#96](https://github.com/EscanBE/evermint/pull/96) Make EVMTxIndexer mandatory service, starts before Json-RPC
 - (test) [#100](https://github.com/EscanBE/evermint/pull/100) Add some edge test cases + benchmark tests
+- (evm) [#103](https://github.com/EscanBE/evermint/pull/103) General use zero gas config for EVM exec
 
 ### Bug Fixes
 
