@@ -275,7 +275,8 @@ servnode tx staking create-validator \
 --pubkey $(servnode tendermint show-validator) \
 --min-self-delegation="1" \
 --amount <TOKEN_DELEGATION>aservo \
---fees 20aservo
+--gas 600000 \
+--gas-prices 2000000000aservo
 ```
 
 MAINNET (NOT DEPLOYED YET)
@@ -293,5 +294,6 @@ servnode tx staking create-validator \
 --pubkey $(servnode tendermint show-validator) \
 --min-self-delegation="1" \
 --amount <TOKEN_DELEGATION>aservo \
---fees 20aservo
+--gas 600000 \
+--gas-prices 2000000000aservo
 ```
