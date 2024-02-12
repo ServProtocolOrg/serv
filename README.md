@@ -144,10 +144,8 @@ reload the .bashrc locally
 
 ```bash
 git clone https://github.com/servprotocolorg/serv.git
-cd serv/cmd/servnode
-go install -tags ledger ./...
-sudo mv $HOME/go/bin/servnode /usr/bin/
-
+cd serv
+make install
 ```
 
 ### Generate and store keys
