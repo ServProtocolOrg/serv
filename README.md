@@ -121,7 +121,7 @@ Download GO locally
 `sudo wget https://go.dev/dl/go1.20.13.linux-amd64.tar.gz`
 
 Install GO locally
-`tar -C /usr/local -xzf go1.20.13.linux-amd64.tar.gz`
+`sudo tar -C /usr/local -xzf go1.20.13.linux-amd64.tar.gz`
 
 ## Setup Go Environment
 
