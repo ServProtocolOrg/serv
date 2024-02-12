@@ -88,8 +88,9 @@ servnode convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 
 ### Install all dependencies:
 
-`sudo apt-get update 
-sudo apt-get -y upgrade`
+`sudo apt-get update`
+
+`sudo apt-get -y upgrade`
 
 #### Install via apt
 `sudo apt install build-essential git vim jq libleveldb-dev make gcc`
@@ -128,10 +129,13 @@ Create your validator's directories to compile, build and run from
 `mkdir -p $HOME/go/src -p $HOME/go/pkg -p $HOME/go/bin`
 
 Add usr/local Go bin and your Validators go/bin to .bashrc 
+
 `echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> $HOME/.bashrc`
+
 `echo "export GOPATH=$HOME/go" >> $HOME/.bashrc`
 
 reload the .bashrc locally
+
 `source .bashrc`
 
 ## Install servnode binaries
