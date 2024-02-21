@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	"github.com/servprotocolorg/serv/v12/crypto/ethsecp256k1"
+	"github.com/servprotocolorg/serv/v12/testutil"
+	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 

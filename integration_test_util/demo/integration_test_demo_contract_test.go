@@ -1,8 +1,8 @@
 package demo
 
 import (
-	"github.com/EscanBE/evermint/v12/integration_test_util"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/servprotocolorg/serv/v12/integration_test_util"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )

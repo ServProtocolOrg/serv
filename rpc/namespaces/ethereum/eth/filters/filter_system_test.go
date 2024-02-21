@@ -3,7 +3,7 @@ package filters
 import (
 	"context"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/rpc/ethereum/pubsub"
+	"github.com/servprotocolorg/serv/v12/rpc/ethereum/pubsub"
 	"github.com/cometbft/cometbft/libs/log"
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/ethereum/go-ethereum/common"

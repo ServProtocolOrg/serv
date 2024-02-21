@@ -1,7 +1,7 @@
 package integration_test_util
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/servprotocolorg/serv/v12/constants"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	// Force-load the tracer engines to trigger registration due to Go-Ethereum v1.10.15 changes

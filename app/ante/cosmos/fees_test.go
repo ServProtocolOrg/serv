@@ -2,13 +2,13 @@ package cosmos_test
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/servprotocolorg/serv/v12/constants"
 	"time"
 
 	"cosmossdk.io/math"
-	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
-	"github.com/EscanBE/evermint/v12/testutil"
-	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	cosmosante "github.com/servprotocolorg/serv/v12/app/ante/cosmos"
+	"github.com/servprotocolorg/serv/v12/testutil"
+	testutiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
 	sdktestutil "github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"

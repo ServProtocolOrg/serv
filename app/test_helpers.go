@@ -2,7 +2,7 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/servprotocolorg/serv/v12/constants"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"time"
@@ -24,10 +24,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/encoding"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/servprotocolorg/serv/v12/encoding"
+	feemarkettypes "github.com/servprotocolorg/serv/v12/x/feemarket/types"
 
-	"github.com/EscanBE/evermint/v12/cmd/config"
+	"github.com/servprotocolorg/serv/v12/cmd/config"
 )
 
 func init() {
@@ -40,7 +40,7 @@ func init() {
 var DefaultTestingAppInit func(chainId string) func() (ibctesting.TestingApp, map[string]json.RawMessage) = SetupTestingApp
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
-// Evermint testing.
+// Serv testing.
 var DefaultConsensusParams = &tmproto.ConsensusParams{
 	Block: &tmproto.BlockParams{
 		MaxBytes: 200000,
@@ -65,12 +65,12 @@ func init() {
 	config.SetBip44CoinType(cfg)
 }
 
-// Setup initializes a new Evermint. A Nop logger is set in Evermint.
+// Setup initializes a new Serv. A Nop logger is set in Serv.
 func Setup(
 	isCheckTx bool,
 	feemarketGenesis *feemarkettypes.GenesisState,
 	chainID string,
-) *Evermint {
+) *Serv {
 	privVal := mock.NewPV()
 	pubKey, _ := privVal.GetPubKey()
 
@@ -88,7 +88,7 @@ func Setup(
 
 	db := dbm.NewMemDB()
 
-	chainApp := NewEvermint(
+	chainApp := NewServ(
 		log.NewNopLogger(),
 		db,
 		nil,
@@ -133,7 +133,7 @@ func Setup(
 	return chainApp
 }
 
-func GenesisStateWithValSet(app *Evermint, genesisState simapp.GenesisState,
+func GenesisStateWithValSet(app *Serv, genesisState simapp.GenesisState,
 	valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
 ) simapp.GenesisState {
@@ -201,7 +201,7 @@ func SetupTestingApp(chainID string) func() (ibctesting.TestingApp, map[string]j
 	return func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 		db := dbm.NewMemDB()
 		cfg := encoding.MakeConfig(ModuleBasics)
-		app := NewEvermint(
+		app := NewServ(
 			log.NewNopLogger(),
 			db,
 			nil,

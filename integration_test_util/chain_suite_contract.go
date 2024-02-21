@@ -5,9 +5,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 	_ "embed" // embed compiled smart contract
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/contracts"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/servprotocolorg/serv/v12/contracts"
+	itutiltypes "github.com/servprotocolorg/serv/v12/integration_test_util/types"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"

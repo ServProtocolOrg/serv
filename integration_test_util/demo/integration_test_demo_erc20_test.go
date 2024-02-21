@@ -3,7 +3,7 @@ package demo
 import (
 	sdkmath "cosmossdk.io/math"
 	"fmt"
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/servprotocolorg/serv/v12/x/erc20/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math"

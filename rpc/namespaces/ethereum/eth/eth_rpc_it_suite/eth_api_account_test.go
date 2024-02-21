@@ -3,9 +3,9 @@ package eth_rpc_it_suite
 import (
 	"context"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/integration_test_util"
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	etherminttypes "github.com/EscanBE/evermint/v12/types"
+	"github.com/servprotocolorg/serv/v12/integration_test_util"
+	rpctypes "github.com/servprotocolorg/serv/v12/rpc/types"
+	etherminttypes "github.com/servprotocolorg/serv/v12/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"math/big"

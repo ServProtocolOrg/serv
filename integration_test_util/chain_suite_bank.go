@@ -3,10 +3,10 @@ package integration_test_util
 //goland:noinspection SpellCheckingInspection
 import (
 	sdkmath "cosmossdk.io/math"
-	"github.com/EscanBE/evermint/v12/constants"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/servprotocolorg/serv/v12/constants"
+	itutiltypes "github.com/servprotocolorg/serv/v12/integration_test_util/types"
+	rpctypes "github.com/servprotocolorg/serv/v12/rpc/types"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"

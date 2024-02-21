@@ -3,9 +3,9 @@ package eth_rpc_it_suite
 //goland:noinspection SpellCheckingInspection
 import (
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/integration_test_util"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	"github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/eth"
+	"github.com/servprotocolorg/serv/v12/integration_test_util"
+	itutiltypes "github.com/servprotocolorg/serv/v12/integration_test_util/types"
+	"github.com/servprotocolorg/serv/v12/rpc/namespaces/ethereum/eth"
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"

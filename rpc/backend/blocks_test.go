@@ -7,10 +7,10 @@ import (
 
 	"cosmossdk.io/math"
 
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	ethrpc "github.com/EscanBE/evermint/v12/rpc/types"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/servprotocolorg/serv/v12/rpc/backend/mocks"
+	ethrpc "github.com/servprotocolorg/serv/v12/rpc/types"
+	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
 	"github.com/cometbft/cometbft/abci/types"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	tmtypes "github.com/cometbft/cometbft/types"

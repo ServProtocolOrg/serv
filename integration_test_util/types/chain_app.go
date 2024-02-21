@@ -2,10 +2,10 @@ package types
 
 //goland:noinspection SpellCheckingInspection
 import (
-	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
-	ibctransferkeeper "github.com/EscanBE/evermint/v12/x/ibc/transfer/keeper"
+	erc20keeper "github.com/servprotocolorg/serv/v12/x/erc20/keeper"
+	evmkeeper "github.com/servprotocolorg/serv/v12/x/evm/keeper"
+	feemarketkeeper "github.com/servprotocolorg/serv/v12/x/feemarket/keeper"
+	ibctransferkeeper "github.com/servprotocolorg/serv/v12/x/ibc/transfer/keeper"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

@@ -1,7 +1,7 @@
 package testutil
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/servprotocolorg/serv/v12/constants"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	sdktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
