@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/utils"
+	"github.com/servprotocolorg/serv/v12/utils"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"math/big"
 	"time"
@@ -26,9 +26,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	ethparams "github.com/ethereum/go-ethereum/params"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evertypes "github.com/servprotocolorg/serv/v12/types"
+	"github.com/servprotocolorg/serv/v12/x/evm/statedb"
+	"github.com/servprotocolorg/serv/v12/x/evm/types"
 )
 
 var _ types.QueryServer = Keeper{}

@@ -1,8 +1,8 @@
 package backend
 
 import (
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	"github.com/EscanBE/evermint/v12/types"
+	"github.com/servprotocolorg/serv/v12/rpc/backend/mocks"
+	"github.com/servprotocolorg/serv/v12/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 )

@@ -4,7 +4,7 @@ package integration_test_util
 import (
 	"crypto/ed25519"
 	"fmt"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
+	itutiltypes "github.com/servprotocolorg/serv/v12/integration_test_util/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	cosmosed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"

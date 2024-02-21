@@ -13,11 +13,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/keeper"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	"github.com/servprotocolorg/serv/v12/x/erc20/keeper"
+	"github.com/servprotocolorg/serv/v12/x/erc20/types"
 )
 
 const (

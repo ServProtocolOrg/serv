@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/indexer"
+	"github.com/servprotocolorg/serv/v12/constants"
+	"github.com/servprotocolorg/serv/v12/indexer"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	"io"
 	"net"
@@ -49,9 +49,9 @@ import (
 	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ethdebug "github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/debug"
-	"github.com/EscanBE/evermint/v12/server/config"
-	srvflags "github.com/EscanBE/evermint/v12/server/flags"
+	ethdebug "github.com/servprotocolorg/serv/v12/rpc/namespaces/ethereum/debug"
+	"github.com/servprotocolorg/serv/v12/server/config"
+	srvflags "github.com/servprotocolorg/serv/v12/server/flags"
 )
 
 // DBOpener is a function to open `application.db`, potentially with customized options.

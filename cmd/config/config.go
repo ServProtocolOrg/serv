@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/types"
+	"github.com/servprotocolorg/serv/v12/constants"
+	"github.com/servprotocolorg/serv/v12/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

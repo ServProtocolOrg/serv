@@ -1,7 +1,7 @@
 package demo
 
 import (
-	"github.com/EscanBE/evermint/v12/integration_test_util"
+	"github.com/servprotocolorg/serv/v12/integration_test_util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

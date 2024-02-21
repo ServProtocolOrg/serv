@@ -8,13 +8,13 @@ import (
 	"crypto/ed25519"
 	"encoding/json"
 	"fmt"
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/constants"
-	itutilutils "github.com/EscanBE/evermint/v12/integration_test_util/utils"
-	etherminttypes "github.com/EscanBE/evermint/v12/types"
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	chainapp "github.com/servprotocolorg/serv/v12/app"
+	"github.com/servprotocolorg/serv/v12/constants"
+	itutilutils "github.com/servprotocolorg/serv/v12/integration_test_util/utils"
+	etherminttypes "github.com/servprotocolorg/serv/v12/types"
+	erc20types "github.com/servprotocolorg/serv/v12/x/erc20/types"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
+	feemarkettypes "github.com/servprotocolorg/serv/v12/x/feemarket/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -120,7 +120,7 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 		})
 	}
 
-	app := chainapp.NewEvermint(
+	app := chainapp.NewServ(
 		logger,           // logger
 		db,               // db
 		nil,              // trace store

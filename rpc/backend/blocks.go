@@ -2,8 +2,8 @@ package backend
 
 import (
 	"fmt"
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	rpctypes "github.com/servprotocolorg/serv/v12/rpc/types"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

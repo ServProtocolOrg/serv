@@ -3,8 +3,8 @@ package integration_test_util
 //goland:noinspection SpellCheckingInspection
 import (
 	"fmt"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
+	itutiltypes "github.com/servprotocolorg/serv/v12/integration_test_util/types"
+	erc20types "github.com/servprotocolorg/serv/v12/x/erc20/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	"strings"

@@ -2,8 +2,9 @@ package eip712_test
 
 import (
 	"encoding/hex"
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+
+	"github.com/servprotocolorg/serv/v12/constants"
+
 	"strings"
 	"testing"
 
@@ -16,11 +17,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/types"
+	"github.com/servprotocolorg/serv/v12/app"
+	"github.com/servprotocolorg/serv/v12/encoding"
+	"github.com/servprotocolorg/serv/v12/ethereum/eip712"
+	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
+	"github.com/servprotocolorg/serv/v12/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,7 +32,7 @@ var (
 		encoding.MakeConfig(app.ModuleBasics).TxConfig,
 	)
 )
-var feePayerAddress = marker.ReplaceAbleAddress("evm17xpfvakm2amg962yls6f84z3kell8c5lcryk68")
+var feePayerAddress = "sx17xpfvakm2amg962yls6f84z3kell8c5lr39ay0"
 
 type TestCaseStruct struct {
 	txBuilder              client.TxBuilder
@@ -203,7 +204,7 @@ func createPopulatedTestCase(t *testing.T) TestCaseStruct {
 
 	msgSend := banktypes.MsgSend{
 		FromAddress: feePayerAddress,
-		ToAddress:   marker.ReplaceAbleWithBadChecksum("evm12luku6uxehhak02py4rcz65zu0swh7wj08n0z0"),
+		ToAddress:   "sx14tvzdwl9cmlfxvl3l4pvxrdz7e58ry4yaaaaaa",
 		Amount: sdk.NewCoins(
 			sdk.NewCoin(
 				constants.BaseDenom,

@@ -2,8 +2,8 @@ package demo
 
 //goland:noinspection SpellCheckingInspection
 import (
-	"github.com/EscanBE/evermint/v12/integration_test_util"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
+	"github.com/servprotocolorg/serv/v12/integration_test_util"
+	itutiltypes "github.com/servprotocolorg/serv/v12/integration_test_util/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	"testing"

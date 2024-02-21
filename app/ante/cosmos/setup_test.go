@@ -1,7 +1,7 @@
 package cosmos_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/servprotocolorg/serv/v12/constants"
 	"math"
 	"testing"
 	"time"
@@ -20,24 +20,24 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/app/ante"
-	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	"github.com/EscanBE/evermint/v12/testutil"
-	"github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/servprotocolorg/serv/v12/app"
+	"github.com/servprotocolorg/serv/v12/app/ante"
+	evmante "github.com/servprotocolorg/serv/v12/app/ante/evm"
+	"github.com/servprotocolorg/serv/v12/crypto/ethsecp256k1"
+	"github.com/servprotocolorg/serv/v12/encoding"
+	"github.com/servprotocolorg/serv/v12/ethereum/eip712"
+	"github.com/servprotocolorg/serv/v12/testutil"
+	"github.com/servprotocolorg/serv/v12/types"
+	"github.com/servprotocolorg/serv/v12/x/evm/statedb"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
+	feemarkettypes "github.com/servprotocolorg/serv/v12/x/feemarket/types"
 )
 
 type AnteTestSuite struct {
 	suite.Suite
 
 	ctx             sdk.Context
-	app             *app.Evermint
+	app             *app.Serv
 	clientCtx       client.Context
 	anteHandler     sdk.AnteHandler
 	ethSigner       ethtypes.Signer
@@ -61,7 +61,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 	suite.priv = priv
 
-	suite.app = app.EthSetup(checkTx, func(app *app.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
+	suite.app = app.EthSetup(checkTx, func(app *app.Serv, genesis simapp.GenesisState) simapp.GenesisState {
 		if suite.enableFeemarket {
 			// setup feemarketGenesis params
 			feemarketGenesis := feemarkettypes.DefaultGenesisState()

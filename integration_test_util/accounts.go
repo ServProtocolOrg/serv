@@ -2,14 +2,15 @@ package integration_test_util
 
 //goland:noinspection GoSnakeCaseUsage,SpellCheckingInspection
 import (
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	etherminthd "github.com/EscanBE/evermint/v12/crypto/hd"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	"github.com/servprotocolorg/serv/v12/crypto/ethsecp256k1"
+	etherminthd "github.com/servprotocolorg/serv/v12/crypto/hd"
+	itutiltypes "github.com/servprotocolorg/serv/v12/integration_test_util/types"
+
+	"testing"
+
 	cosmoshd "github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // newValidatorAccounts inits and return predefined validator accounts.
@@ -135,51 +136,51 @@ var hdPath = cosmoshd.CreateHDPath(60, 0, 0).String()
 
 //goland:noinspection GoSnakeCaseUsage,SpellCheckingInspection
 var (
-	IT_VAL_1_ADDR      = marker.ReplaceAbleAddress("evm1cqetlv987ntelz7s6ntvv95ltrns9qt6lqulcz")
-	IT_VAL_1_VAL_ADDR  = marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6et40np")
-	IT_VAL_1_CONS_ADDR = marker.ReplaceAbleAddress("evmvalcons1vv3kjxtrh7jredjehk5xw66r62euensst2lxka")
+	IT_VAL_1_ADDR      = "sx1cqetlv987ntelz7s6ntvv95ltrns9qt6yja5x2"
+	IT_VAL_1_VAL_ADDR  = "sxvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6rglj48"
+	IT_VAL_1_CONS_ADDR = "sxvalcons1vv3kjxtrh7jredjehk5xw66r62euenss3f4msm"
 	IT_VAL_1_MNEMONIC  = "camera foster skate whisper faith opera axis false van urban clean pet shove census surface injury phone alley cup school pet edge trial pony"
 
-	IT_VAL_2_ADDR      = marker.ReplaceAbleAddress("evm19k6gu9tkr40uyhf86sjmlgy6hu4lpfx40p482t")
-	IT_VAL_2_VAL_ADDR  = marker.ReplaceAbleAddress("evmvaloper19k6gu9tkr40uyhf86sjmlgy6hu4lpfx4f2uhpg")
-	IT_VAL_2_CONS_ADDR = marker.ReplaceAbleAddress("evmvalcons19fphsrnm2rx9jk4exfdeq46d6ptwlpy3w0cllv")
+	IT_VAL_2_ADDR      = "sx19k6gu9tkr40uyhf86sjmlgy6hu4lpfx45n5v5r"
+	IT_VAL_2_VAL_ADDR  = "sxvaloper19k6gu9tkr40uyhf86sjmlgy6hu4lpfx4nfk28w"
+	IT_VAL_2_CONS_ADDR = "sxvalcons19fphsrnm2rx9jk4exfdeq46d6ptwlpy35vjze2"
 	IT_VAL_2_MNEMONIC  = "explain captain crucial fault symptom degree divorce beyond path security jewel alien beach finish bridge decide toast scene pelican sorry achieve off denial wall"
 
-	IT_VAL_3_ADDR      = marker.ReplaceAbleAddress("evm1rxczyg2x94dqcn77t4pyhcndg3r889dw9rn0uk")
-	IT_VAL_3_VAL_ADDR  = marker.ReplaceAbleAddress("evmvaloper1rxczyg2x94dqcn77t4pyhcndg3r889dwrg6lh4")
-	IT_VAL_3_CONS_ADDR = marker.ReplaceAbleAddress("evmvalcons1vxky3ld4llhaqk8nl6pw6xkxqy97rwdarue89z")
+	IT_VAL_3_ADDR      = "sx1rxczyg2x94dqcn77t4pyhcndg3r889dw73jyz7"
+	IT_VAL_3_VAL_ADDR  = "sxvaloper1rxczyg2x94dqcn77t4pyhcndg3r889dwetsz3n"
+	IT_VAL_3_CONS_ADDR = "sxvalcons1vxky3ld4llhaqk8nl6pw6xkxqy97rwdaeln6ry"
 	IT_VAL_3_MNEMONIC  = "worth talent fire announce file skull acquire ethics injury yard home list clap guard busy describe bag front grass noise index vacuum govern number"
 
-	IT_VAL_4_ADDR      = marker.ReplaceAbleAddress("evm1gmjvfd4pr0yd94t0x8xw4uwg2j0cn9g9hn0t6r")
-	IT_VAL_4_VAL_ADDR  = marker.ReplaceAbleAddress("evmvaloper1gmjvfd4pr0yd94t0x8xw4uwg2j0cn9g93cxm3q")
-	IT_VAL_4_CONS_ADDR = marker.ReplaceAbleAddress("evmvalcons1yl9a7v952ejxju9fec6hqeuuku4372pncyvrv2")
+	IT_VAL_4_ADDR      = "sx1gmjvfd4pr0yd94t0x8xw4uwg2j0cn9g9vpwqyt"
+	IT_VAL_4_VAL_ADDR  = "sxvaloper1gmjvfd4pr0yd94t0x8xw4uwg2j0cn9g9tmvxhx"
+	IT_VAL_4_CONS_ADDR = "sxvalcons1yl9a7v952ejxju9fec6hqeuuku4372pnz8x72v"
 	IT_VAL_4_MNEMONIC  = "question joke action slice mistake carbon virtual still culture push estate inhale true endless market flip hammer word lecture pen toddler lyrics creek regular"
 
-	IT_VAL_5_ADDR      = marker.ReplaceAbleAddress("evm1fpveqajjpt2emsfkr5xwp80074mkn38x777ezk")
-	IT_VAL_5_VAL_ADDR  = marker.ReplaceAbleAddress("evmvaloper1fpveqajjpt2emsfkr5xwp80074mkn38xc4hff4")
-	IT_VAL_5_CONS_ADDR = marker.ReplaceAbleAddress("evmvalcons1p6n7qpnn5lqyyujzrp344drz228l3wx0y3fvt5")
+	IT_VAL_5_ADDR      = "sx1fpveqajjpt2emsfkr5xwp80074mkn38x9vlju7"
+	IT_VAL_5_VAL_ADDR  = "sxvaloper1fpveqajjpt2emsfkr5xwp80074mkn38xzka50n"
+	IT_VAL_5_CONS_ADDR = "sxvalcons1p6n7qpnn5lqyyujzrp344drz228l3wx07jr3dj"
 	IT_VAL_5_MNEMONIC  = "tornado fuel drill critic indicate pool few wheat omit sight stage focus mountain amused neck surge post giant vague nut marine spoon fragile outdoor"
 )
 
 //goland:noinspection GoSnakeCaseUsage,SpellCheckingInspection
 var (
-	IT_WAL_1_ADDR     = marker.ReplaceAbleAddress("evm139mq752delxv78jvtmwxhasyrycufsvr5jkxf3")
+	IT_WAL_1_ADDR     = "sx139mq752delxv78jvtmwxhasyrycufsvr0qhdhe"
 	IT_WAL_1_ETH_ADDR = "0x89760f514DCfCCCf1E4c5eDC6Bf6041931c4c183"
 	IT_WAL_1_MNEMONIC = "curtain hat remain song receive tower stereo hope frog cheap brown plate raccoon post reflect wool sail salmon game salon group glimpse adult shift"
 
-	IT_WAL_2_ADDR     = marker.ReplaceAbleAddress("evm1yxmxrj9zwrkc855zdt2fk83m0r63tcjuvyy9sq")
+	IT_WAL_2_ADDR     = "sx1yxmxrj9zwrkc855zdt2fk83m0r63tcjuhk9wwg"
 	IT_WAL_2_ETH_ADDR = "0x21b661c8A270ed83D2826aD49b1E3B78F515E25C"
 	IT_WAL_2_MNEMONIC = "coral drink glow assist canyon ankle hole buffalo vendor foster void clip welcome slush cherry omit member legal account lunar often hen winter culture"
 
-	IT_WAL_3_ADDR     = marker.ReplaceAbleAddress("evm1v3uay5np5a93kpv80rfldxkhe32hxsdg8ya87c")
+	IT_WAL_3_ADDR     = "sx1v3uay5np5a93kpv80rfldxkhe32hxsdgukuvqs"
 	IT_WAL_3_ETH_ADDR = "0x6479D25261A74B1b058778d3F69Ad7cC557341A8"
 	IT_WAL_3_MNEMONIC = "depth skull anxiety weasel pulp interest seek junk trumpet orbit glance drink comfort much alarm during lady strong matrix enable write pledge alcohol buzz"
 
-	IT_WAL_4_ADDR     = marker.ReplaceAbleAddress("evm1zsdj9vsw44kk46fmnka7k76smsaxgh6ps9l8p0")
+	IT_WAL_4_ADDR     = "sx1zsdj9vsw44kk46fmnka7k76smsaxgh6pth7vl8"
 	IT_WAL_4_ETH_ADDR = "0x141B22B20ead6d6AE93B9DBBeB7b50DC3A645F41"
 	IT_WAL_4_MNEMONIC = "author humble raise whisper allow appear typical release fossil address spy jazz damage runway spy gossip add embark wrap frost toe advice matrix laundry"
 
-	IT_WAL_5_ADDR     = marker.ReplaceAbleAddress("evm1862crydur2cpjww66dhfzcc26yglvrcsh8x7at")
+	IT_WAL_5_ADDR     = "sx1862crydur2cpjww66dhfzcc26yglvrcsv484rr"
 	IT_WAL_5_ETH_ADDR = "0x3E958191BC1AB01939DAD36e91630Ad111F60f10"
 	IT_WAL_5_MNEMONIC = "museum stumble kingdom impulse replace angle exercise trial spring sphere cube brief foil bridge dish earn practice surprise quantum hunt scale solve october scout"
 )

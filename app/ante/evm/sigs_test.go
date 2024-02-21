@@ -3,9 +3,9 @@ package evm_test
 import (
 	"math/big"
 
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
+	"github.com/servprotocolorg/serv/v12/x/evm/statedb"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
 )
 
 func (suite *AnteTestSuite) TestSignatures() {

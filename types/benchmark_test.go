@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/servprotocolorg/serv/v12/constants"
 	"testing"
 )
 

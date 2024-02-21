@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/servprotocolorg/serv/v12/types"
 )
 
 // Validate performs a basic validation of an ethereum Log fields.

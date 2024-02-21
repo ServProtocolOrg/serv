@@ -1,7 +1,7 @@
 package eth_rpc_it_suite
 
 import (
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
+	rpctypes "github.com/servprotocolorg/serv/v12/rpc/types"
 	"testing"
 )
 

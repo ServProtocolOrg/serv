@@ -13,10 +13,10 @@ MNEMONICS[2]="coral drink glow assist canyon ankle hole buffalo vendor foster vo
 # 0x6479D25261A74B1b058778d3F69Ad7cC557341A8
 MNEMONICS[3]="depth skull anxiety weasel pulp interest seek junk trumpet orbit glance drink comfort much alarm during lady strong matrix enable write pledge alcohol buzz"
 
-CHAINID="evermint_70707-1" # devnet
+CHAINID="serv_70707-1" # devnet
 MONIKER="localtestnet"
-BINARY="evmd"
-MIN_DENOM="wei"
+BINARY="servnode"
+MIN_DENOM="aservo"
 # Remember to change to other types of keyring like 'file' in-case exposing to outside world,
 # otherwise your balance will be wiped quickly
 # The keyring test does not require private key to steal tokens from you
@@ -24,7 +24,7 @@ KEYRING="test"
 KEYALGO="eth_secp256k1"
 LOGLEVEL="info"
 # Set dedicated home directory for the temp instance
-HOMEDIR="$HOME/.tmp-evermint"
+HOMEDIR="$HOME/.tmp-serv"
 # to trace evm
 #TRACE="--trace"
 TRACE=""
@@ -145,9 +145,9 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	## In case you want to create multiple validators at genesis
 	## 1. Back to `"$BINARY" keys add` step, init more keys
 	## 2. Back to `"$BINARY" add-genesis-account` step, add balance for those
-	## 3. Clone this ~/.evermint home directory into some others, let's say `~/.clonedHome`
+	## 3. Clone this ~/.serv home directory into some others, let's say `~/.clonedHome`
 	## 4. Run `gentx` in each of those folders
-	## 5. Copy the `gentx-*` folders under `~/.clonedHome/config/gentx/` folders into the original `~/.evermint/config/gentx`
+	## 5. Copy the `gentx-*` folders under `~/.clonedHome/config/gentx/` folders into the original `~/.serv/config/gentx`
 
 	# Collect genesis tx
 	"$BINARY" collect-gentxs --home "$HOMEDIR"
