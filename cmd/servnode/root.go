@@ -3,16 +3,17 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/servprotocolorg/serv/v12/cmd/servnode/inspect"
-	cmdutils "github.com/servprotocolorg/serv/v12/cmd/servnode/utils"
-	"github.com/servprotocolorg/serv/v12/constants"
-	"github.com/cosmos/cosmos-sdk/client/snapshot"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/spf13/viper"
 	"io"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/client/snapshot"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/servprotocolorg/serv/v12/cmd/servnode/inspect"
+	cmdutils "github.com/servprotocolorg/serv/v12/cmd/servnode/utils"
+	"github.com/servprotocolorg/serv/v12/constants"
+	"github.com/spf13/viper"
 
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
@@ -127,6 +128,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		config.Cmd(),
 		pruning.PruningCmd(a.newApp),
 		NewConvertAddressCmd(),
+		NewCheckFlagCmd(),
 		func() *cobra.Command {
 			snapshotCmd := snapshot.Cmd(a.newApp)
 			snapshotCmd.Long = fmt.Sprintf(`
