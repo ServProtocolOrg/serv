@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/servprotocolorg/serv/v12/constants"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/servprotocolorg/serv/v12/constants"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -85,6 +86,12 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 			// Set default seeds
 			// TODO add seeds here
 			seeds := []string{
+				"07fc9378f4f2e50b3dd0962503f4af1bebecf5e8@5.161.193.221:26656",
+				"3fbfa45c744d9b92e4193fa09e78b7b836fc2aff@5.161.103.108:26656",
+				"691796930ac9282960d9ae3908da862cae3c1feb@5.161.230.47:26656",
+				"b540cb2792869523cef2d98b87d828c31144f914@5.161.58.91:26656",
+				"845f29dc774ea1edec369aa8faf716b8e5df7785@5.161.230.42:26656",
+				"6e05cd659ad7d0f9894130239cd463f5bee59521@5.161.187.45:26656",
 				//"40f4fac63da8b1ce8f850b0fa0f79b2699d2ce72@seed1.serv.example.com:26656",
 				//"e3e11fca4ecf4035a751f3fea90e3a821e274487@seed2.serv.example.com:26656",
 				//"fc86e7e75c5d2e4699535e1b1bec98ae55b16826@seed3.serv.example.com:26656",
