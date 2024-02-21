@@ -25,11 +25,3 @@ func NewCheckFlagCmd() *cobra.Command {
 
 	return cmd
 }
-
-func main() {
-	cmd := NewCheckFlagCmd()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-}
