@@ -386,7 +386,12 @@ func (b *Backend) GasPrice() (*hexutil.Big, error) {
 		result *big.Int
 		err    error
 	)
-	if head := b.CurrentHeader(); head.BaseFee != nil {
+
+	head := b.CurrentHeader()
+	if head == nil {
+		return nil, errors.New("failed to get current block header")
+	}
+	if head.BaseFee != nil {
 		result, err = b.SuggestGasTipCap(head.BaseFee)
 		if err != nil {
 			return nil, err

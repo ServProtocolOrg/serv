@@ -4,365 +4,6 @@ info:
   description: A REST interface for state queries and transactions
   version: 1.0.0
 paths:
-  /evmos/claims/v1/claims_records:
-    get:
-      summary: ClaimsRecords returns all claims records
-      operationId: ClaimsRecords
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              claims:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    address:
-                      type: string
-                      title: address of claiming user in either bech32 or hex format
-                    initial_claimable_amount:
-                      type: string
-                      title: initial_claimable_amount for the user
-                    actions_completed:
-                      type: array
-                      items:
-                        type: boolean
-                      title: >-
-                        actions_completed is a slice that describes which
-                        actions were completed
-                  description: >-
-                    ClaimsRecordAddress is the claims metadata per address that
-                    is used at
-
-                    Genesis.
-                title: claims defines all claims records
-              pagination:
-                description: pagination defines the pagination in the response.
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-            description: >-
-              QueryClaimsRecordsResponse is the response type for the
-              Query/ClaimsRecords
-
-              RPC method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-      tags:
-        - Query
-  /evmos/claims/v1/claims_records/{address}:
-    get:
-      summary: ClaimsRecord returns the claims record for a given address
-      operationId: ClaimsRecord
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              initial_claimable_amount:
-                type: string
-                title: initial_claimable_amount of the user
-              claims:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    action:
-                      title: action enum
-                      type: string
-                      enum:
-                        - ACTION_UNSPECIFIED
-                        - ACTION_VOTE
-                        - ACTION_DELEGATE
-                        - ACTION_EVM
-                        - ACTION_IBC_TRANSFER
-                      default: ACTION_UNSPECIFIED
-                      description: >-
-                        Action defines the list of available actions to claim
-                        the airdrop tokens.
-
-                         - ACTION_UNSPECIFIED: ACTION_UNSPECIFIED defines an invalid action.
-                         - ACTION_VOTE: ACTION_VOTE defines a proposal vote.
-                         - ACTION_DELEGATE: ACTION_DELEGATE defines an staking delegation.
-                         - ACTION_EVM: ACTION_EVM defines an EVM transaction.
-                         - ACTION_IBC_TRANSFER: ACTION_IBC_TRANSFER defines a fungible token transfer transaction via IBC.
-                    completed:
-                      type: boolean
-                      title: completed is true if the action has been completed
-                    claimable_amount:
-                      type: string
-                      title: >-
-                        claimable_amount of tokens for the action. Zero if
-                        completed
-                  description: >-
-                    Claim defines the action, completed flag and the remaining
-                    claimable amount
-
-                    for a given user. This is only used during client queries.
-                title: claims of the user
-            description: >-
-              QueryClaimsRecordResponse is the response type for the
-              Query/ClaimsRecord RPC
-
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: address
-          description: address defines the user to query claims record for
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
-  /evmos/claims/v1/params:
-    get:
-      summary: Params returns the claims module parameters
-      operationId: ClaimsParams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                description: params defines the parameters of the module.
-                type: object
-                properties:
-                  enable_claims:
-                    type: boolean
-                    title: >-
-                      enable_claims is the parameter to enable the claiming
-                      process
-                  airdrop_start_time:
-                    type: string
-                    format: date-time
-                    title: >-
-                      airdrop_start_time defines the timestamp of the airdrop
-                      start
-                  duration_until_decay:
-                    type: string
-                    title: duration_until_decay of claimable tokens begin
-                  duration_of_decay:
-                    type: string
-                    title: duration_of_decay for token claim decay period
-                  claims_denom:
-                    type: string
-                    title: claims_denom is the denomination of the claimable coin
-                  authorized_channels:
-                    type: array
-                    items:
-                      type: string
-                    description: >-
-                      authorized_channels is the list of authorized channel
-                      identifiers that can perform address
-
-                      attestations via IBC.
-                  evm_channels:
-                    type: array
-                    items:
-                      type: string
-                    title: >-
-                      evm_channels is the list of channel identifiers from EVM
-                      compatible chains
-            description: >-
-              QueryParamsResponse is the response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      tags:
-        - Query
-  /evmos/claims/v1/total_unclaimed:
-    get:
-      summary: TotalUnclaimed queries the total unclaimed tokens from the airdrop
-      operationId: TotalUnclaimed
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              coins:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    denom:
-                      type: string
-                    amount:
-                      type: string
-                  description: >-
-                    Coin defines a token with a denomination and an amount.
-
-
-                    NOTE: The amount field is an Int which implements the custom
-                    method
-
-                    signatures required by gogoproto.
-                title: coins defines the unclaimed coins
-            description: >-
-              QueryTotalUnclaimedResponse is the response type for the
-              Query/TotalUnclaimed
-
-              RPC method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      tags:
-        - Query
   /evmos/erc20/v1/params:
     get:
       summary: Params retrieves the erc20 module params
@@ -42351,197 +41992,138 @@ definitions:
                repeated Bar results = 1;
                PageResponse page = 2;
        }
-  cosmos.base.v1beta1.Coin:
-    type: object
-    properties:
-      denom:
-        type: string
-      amount:
-        type: string
-    description: |-
-      Coin defines a token with a denomination and an amount.
-
-      NOTE: The amount field is an Int which implements the custom method
-      signatures required by gogoproto.
-  evmos.claims.v1.Action:
+  evmos.erc20.v1.Owner:
     type: string
     enum:
-      - ACTION_UNSPECIFIED
-      - ACTION_VOTE
-      - ACTION_DELEGATE
-      - ACTION_EVM
-      - ACTION_IBC_TRANSFER
-    default: ACTION_UNSPECIFIED
+      - OWNER_UNSPECIFIED
+      - OWNER_MODULE
+      - OWNER_EXTERNAL
+    default: OWNER_UNSPECIFIED
     description: |-
-      Action defines the list of available actions to claim the airdrop tokens.
+      Owner enumerates the ownership of a ERC20 contract.
 
-       - ACTION_UNSPECIFIED: ACTION_UNSPECIFIED defines an invalid action.
-       - ACTION_VOTE: ACTION_VOTE defines a proposal vote.
-       - ACTION_DELEGATE: ACTION_DELEGATE defines an staking delegation.
-       - ACTION_EVM: ACTION_EVM defines an EVM transaction.
-       - ACTION_IBC_TRANSFER: ACTION_IBC_TRANSFER defines a fungible token transfer transaction via IBC.
-  evmos.claims.v1.Claim:
+       - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
+       - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
+       - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
+  evmos.erc20.v1.Params:
     type: object
     properties:
-      action:
-        title: action enum
-        type: string
-        enum:
-          - ACTION_UNSPECIFIED
-          - ACTION_VOTE
-          - ACTION_DELEGATE
-          - ACTION_EVM
-          - ACTION_IBC_TRANSFER
-        default: ACTION_UNSPECIFIED
-        description: >-
-          Action defines the list of available actions to claim the airdrop
-          tokens.
-
-           - ACTION_UNSPECIFIED: ACTION_UNSPECIFIED defines an invalid action.
-           - ACTION_VOTE: ACTION_VOTE defines a proposal vote.
-           - ACTION_DELEGATE: ACTION_DELEGATE defines an staking delegation.
-           - ACTION_EVM: ACTION_EVM defines an EVM transaction.
-           - ACTION_IBC_TRANSFER: ACTION_IBC_TRANSFER defines a fungible token transfer transaction via IBC.
-      completed:
+      enable_erc20:
         type: boolean
-        title: completed is true if the action has been completed
-      claimable_amount:
-        type: string
-        title: claimable_amount of tokens for the action. Zero if completed
-    description: >-
-      Claim defines the action, completed flag and the remaining claimable
-      amount
+        description: >-
+          enable_erc20 is the parameter to enable the conversion of Cosmos coins
+          <--> ERC20 tokens.
+      enable_evm_hook:
+        type: boolean
+        description: >-
+          enable_evm_hook is the parameter to enable the EVM hook that converts
+          an ERC20 token to a Cosmos
 
-      for a given user. This is only used during client queries.
-  evmos.claims.v1.ClaimsRecordAddress:
+          Coin by transferring the Tokens through a MsgEthereumTx to the
+          ModuleAddress Ethereum address.
+    title: Params defines the erc20 module params
+  evmos.erc20.v1.QueryParamsResponse:
     type: object
     properties:
-      address:
-        type: string
-        title: address of claiming user in either bech32 or hex format
-      initial_claimable_amount:
-        type: string
-        title: initial_claimable_amount for the user
-      actions_completed:
-        type: array
-        items:
-          type: boolean
-        title: >-
-          actions_completed is a slice that describes which actions were
-          completed
+      params:
+        title: params are the erc20 module parameters
+        type: object
+        properties:
+          enable_erc20:
+            type: boolean
+            description: >-
+              enable_erc20 is the parameter to enable the conversion of Cosmos
+              coins <--> ERC20 tokens.
+          enable_evm_hook:
+            type: boolean
+            description: >-
+              enable_evm_hook is the parameter to enable the EVM hook that
+              converts an ERC20 token to a Cosmos
+
+              Coin by transferring the Tokens through a MsgEthereumTx to the
+              ModuleAddress Ethereum address.
     description: |-
-      ClaimsRecordAddress is the claims metadata per address that is used at
-      Genesis.
-  evmos.claims.v1.Params:
+      QueryParamsResponse is the response type for the Query/Params RPC
+      method.
+  evmos.erc20.v1.QueryTokenPairResponse:
     type: object
     properties:
-      enable_claims:
-        type: boolean
-        title: enable_claims is the parameter to enable the claiming process
-      airdrop_start_time:
-        type: string
-        format: date-time
-        title: airdrop_start_time defines the timestamp of the airdrop start
-      duration_until_decay:
-        type: string
-        title: duration_until_decay of claimable tokens begin
-      duration_of_decay:
-        type: string
-        title: duration_of_decay for token claim decay period
-      claims_denom:
-        type: string
-        title: claims_denom is the denomination of the claimable coin
-      authorized_channels:
-        type: array
-        items:
-          type: string
-        description: >-
-          authorized_channels is the list of authorized channel identifiers that
-          can perform address
+      token_pair:
+        type: object
+        properties:
+          erc20_address:
+            type: string
+            title: erc20_address is the hex address of ERC20 contract token
+          denom:
+            type: string
+            title: denom defines the cosmos base denomination to be mapped to
+          enabled:
+            type: boolean
+            title: enabled defines the token mapping enable status
+          contract_owner:
+            title: >-
+              contract_owner is the an ENUM specifying the type of ERC20 owner
+              (0 invalid, 1 ModuleAccount, 2 external address)
+            type: string
+            enum:
+              - OWNER_UNSPECIFIED
+              - OWNER_MODULE
+              - OWNER_EXTERNAL
+            default: OWNER_UNSPECIFIED
+            description: |-
+              Owner enumerates the ownership of a ERC20 contract.
 
-          attestations via IBC.
-      evm_channels:
-        type: array
-        items:
-          type: string
+               - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
+               - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
+               - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
+        description: >-
+          TokenPair defines an instance that records a pairing consisting of a
+          native
+           Cosmos Coin and an ERC20 token address.
         title: >-
-          evm_channels is the list of channel identifiers from EVM compatible
-          chains
-    description: Params defines the claims module's parameters.
-  evmos.claims.v1.QueryClaimsRecordResponse:
+          token_pairs returns the info about a registered token pair for the
+          erc20 module
+    description: |-
+      QueryTokenPairResponse is the response type for the Query/TokenPair RPC
+      method.
+  evmos.erc20.v1.QueryTokenPairsResponse:
     type: object
     properties:
-      initial_claimable_amount:
-        type: string
-        title: initial_claimable_amount of the user
-      claims:
+      token_pairs:
         type: array
         items:
           type: object
           properties:
-            action:
-              title: action enum
+            erc20_address:
+              type: string
+              title: erc20_address is the hex address of ERC20 contract token
+            denom:
+              type: string
+              title: denom defines the cosmos base denomination to be mapped to
+            enabled:
+              type: boolean
+              title: enabled defines the token mapping enable status
+            contract_owner:
+              title: >-
+                contract_owner is the an ENUM specifying the type of ERC20 owner
+                (0 invalid, 1 ModuleAccount, 2 external address)
               type: string
               enum:
-                - ACTION_UNSPECIFIED
-                - ACTION_VOTE
-                - ACTION_DELEGATE
-                - ACTION_EVM
-                - ACTION_IBC_TRANSFER
-              default: ACTION_UNSPECIFIED
-              description: >-
-                Action defines the list of available actions to claim the
-                airdrop tokens.
+                - OWNER_UNSPECIFIED
+                - OWNER_MODULE
+                - OWNER_EXTERNAL
+              default: OWNER_UNSPECIFIED
+              description: |-
+                Owner enumerates the ownership of a ERC20 contract.
 
-                 - ACTION_UNSPECIFIED: ACTION_UNSPECIFIED defines an invalid action.
-                 - ACTION_VOTE: ACTION_VOTE defines a proposal vote.
-                 - ACTION_DELEGATE: ACTION_DELEGATE defines an staking delegation.
-                 - ACTION_EVM: ACTION_EVM defines an EVM transaction.
-                 - ACTION_IBC_TRANSFER: ACTION_IBC_TRANSFER defines a fungible token transfer transaction via IBC.
-            completed:
-              type: boolean
-              title: completed is true if the action has been completed
-            claimable_amount:
-              type: string
-              title: claimable_amount of tokens for the action. Zero if completed
+                 - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
+                 - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
+                 - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
           description: >-
-            Claim defines the action, completed flag and the remaining claimable
-            amount
-
-            for a given user. This is only used during client queries.
-        title: claims of the user
-    description: >-
-      QueryClaimsRecordResponse is the response type for the Query/ClaimsRecord
-      RPC
-
-      method.
-  evmos.claims.v1.QueryClaimsRecordsResponse:
-    type: object
-    properties:
-      claims:
-        type: array
-        items:
-          type: object
-          properties:
-            address:
-              type: string
-              title: address of claiming user in either bech32 or hex format
-            initial_claimable_amount:
-              type: string
-              title: initial_claimable_amount for the user
-            actions_completed:
-              type: array
-              items:
-                type: boolean
-              title: >-
-                actions_completed is a slice that describes which actions were
-                completed
-          description: >-
-            ClaimsRecordAddress is the claims metadata per address that is used
-            at
-
-            Genesis.
-        title: claims defines all claims records
+            TokenPair defines an instance that records a pairing consisting of a
+            native
+             Cosmos Coin and an ERC20 token address.
+        title: token_pairs is a slice of registered token pairs for the erc20 module
       pagination:
         description: pagination defines the pagination in the response.
         type: object
@@ -42561,74 +42143,41 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
-    description: >-
-      QueryClaimsRecordsResponse is the response type for the
-      Query/ClaimsRecords
-
-      RPC method.
-  evmos.claims.v1.QueryParamsResponse:
+    description: |-
+      QueryTokenPairsResponse is the response type for the Query/TokenPairs RPC
+      method.
+  evmos.erc20.v1.TokenPair:
     type: object
     properties:
-      params:
-        description: params defines the parameters of the module.
-        type: object
-        properties:
-          enable_claims:
-            type: boolean
-            title: enable_claims is the parameter to enable the claiming process
-          airdrop_start_time:
-            type: string
-            format: date-time
-            title: airdrop_start_time defines the timestamp of the airdrop start
-          duration_until_decay:
-            type: string
-            title: duration_until_decay of claimable tokens begin
-          duration_of_decay:
-            type: string
-            title: duration_of_decay for token claim decay period
-          claims_denom:
-            type: string
-            title: claims_denom is the denomination of the claimable coin
-          authorized_channels:
-            type: array
-            items:
-              type: string
-            description: >-
-              authorized_channels is the list of authorized channel identifiers
-              that can perform address
+      erc20_address:
+        type: string
+        title: erc20_address is the hex address of ERC20 contract token
+      denom:
+        type: string
+        title: denom defines the cosmos base denomination to be mapped to
+      enabled:
+        type: boolean
+        title: enabled defines the token mapping enable status
+      contract_owner:
+        title: >-
+          contract_owner is the an ENUM specifying the type of ERC20 owner (0
+          invalid, 1 ModuleAccount, 2 external address)
+        type: string
+        enum:
+          - OWNER_UNSPECIFIED
+          - OWNER_MODULE
+          - OWNER_EXTERNAL
+        default: OWNER_UNSPECIFIED
+        description: |-
+          Owner enumerates the ownership of a ERC20 contract.
 
-              attestations via IBC.
-          evm_channels:
-            type: array
-            items:
-              type: string
-            title: >-
-              evm_channels is the list of channel identifiers from EVM
-              compatible chains
-    description: QueryParamsResponse is the response type for the Query/Params RPC method.
-  evmos.claims.v1.QueryTotalUnclaimedResponse:
-    type: object
-    properties:
-      coins:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
-
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
-        title: coins defines the unclaimed coins
+           - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
+           - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
+           - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
     description: >-
-      QueryTotalUnclaimedResponse is the response type for the
-      Query/TotalUnclaimed
-
-      RPC method.
+      TokenPair defines an instance that records a pairing consisting of a
+      native
+       Cosmos Coin and an ERC20 token address.
   google.protobuf.Any:
     type: object
     properties:
@@ -42962,192 +42511,18 @@ definitions:
                   "@type": "type.googleapis.com/google.protobuf.Duration",
                   "value": "1.212s"
                 }
-  evmos.erc20.v1.Owner:
-    type: string
-    enum:
-      - OWNER_UNSPECIFIED
-      - OWNER_MODULE
-      - OWNER_EXTERNAL
-    default: OWNER_UNSPECIFIED
-    description: |-
-      Owner enumerates the ownership of a ERC20 contract.
-
-       - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
-       - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
-       - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
-  evmos.erc20.v1.Params:
+  cosmos.base.v1beta1.Coin:
     type: object
     properties:
-      enable_erc20:
-        type: boolean
-        description: >-
-          enable_erc20 is the parameter to enable the conversion of Cosmos coins
-          <--> ERC20 tokens.
-      enable_evm_hook:
-        type: boolean
-        description: >-
-          enable_evm_hook is the parameter to enable the EVM hook that converts
-          an ERC20 token to a Cosmos
-
-          Coin by transferring the Tokens through a MsgEthereumTx to the
-          ModuleAddress Ethereum address.
-    title: Params defines the erc20 module params
-  evmos.erc20.v1.QueryParamsResponse:
-    type: object
-    properties:
-      params:
-        title: params are the erc20 module parameters
-        type: object
-        properties:
-          enable_erc20:
-            type: boolean
-            description: >-
-              enable_erc20 is the parameter to enable the conversion of Cosmos
-              coins <--> ERC20 tokens.
-          enable_evm_hook:
-            type: boolean
-            description: >-
-              enable_evm_hook is the parameter to enable the EVM hook that
-              converts an ERC20 token to a Cosmos
-
-              Coin by transferring the Tokens through a MsgEthereumTx to the
-              ModuleAddress Ethereum address.
-    description: |-
-      QueryParamsResponse is the response type for the Query/Params RPC
-      method.
-  evmos.erc20.v1.QueryTokenPairResponse:
-    type: object
-    properties:
-      token_pair:
-        type: object
-        properties:
-          erc20_address:
-            type: string
-            title: erc20_address is the hex address of ERC20 contract token
-          denom:
-            type: string
-            title: denom defines the cosmos base denomination to be mapped to
-          enabled:
-            type: boolean
-            title: enabled defines the token mapping enable status
-          contract_owner:
-            title: >-
-              contract_owner is the an ENUM specifying the type of ERC20 owner
-              (0 invalid, 1 ModuleAccount, 2 external address)
-            type: string
-            enum:
-              - OWNER_UNSPECIFIED
-              - OWNER_MODULE
-              - OWNER_EXTERNAL
-            default: OWNER_UNSPECIFIED
-            description: |-
-              Owner enumerates the ownership of a ERC20 contract.
-
-               - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
-               - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
-               - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
-        description: >-
-          TokenPair defines an instance that records a pairing consisting of a
-          native
-           Cosmos Coin and an ERC20 token address.
-        title: >-
-          token_pairs returns the info about a registered token pair for the
-          erc20 module
-    description: |-
-      QueryTokenPairResponse is the response type for the Query/TokenPair RPC
-      method.
-  evmos.erc20.v1.QueryTokenPairsResponse:
-    type: object
-    properties:
-      token_pairs:
-        type: array
-        items:
-          type: object
-          properties:
-            erc20_address:
-              type: string
-              title: erc20_address is the hex address of ERC20 contract token
-            denom:
-              type: string
-              title: denom defines the cosmos base denomination to be mapped to
-            enabled:
-              type: boolean
-              title: enabled defines the token mapping enable status
-            contract_owner:
-              title: >-
-                contract_owner is the an ENUM specifying the type of ERC20 owner
-                (0 invalid, 1 ModuleAccount, 2 external address)
-              type: string
-              enum:
-                - OWNER_UNSPECIFIED
-                - OWNER_MODULE
-                - OWNER_EXTERNAL
-              default: OWNER_UNSPECIFIED
-              description: |-
-                Owner enumerates the ownership of a ERC20 contract.
-
-                 - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
-                 - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
-                 - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
-          description: >-
-            TokenPair defines an instance that records a pairing consisting of a
-            native
-             Cosmos Coin and an ERC20 token address.
-        title: token_pairs is a slice of registered token pairs for the erc20 module
-      pagination:
-        description: pagination defines the pagination in the response.
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-    description: |-
-      QueryTokenPairsResponse is the response type for the Query/TokenPairs RPC
-      method.
-  evmos.erc20.v1.TokenPair:
-    type: object
-    properties:
-      erc20_address:
-        type: string
-        title: erc20_address is the hex address of ERC20 contract token
       denom:
         type: string
-        title: denom defines the cosmos base denomination to be mapped to
-      enabled:
-        type: boolean
-        title: enabled defines the token mapping enable status
-      contract_owner:
-        title: >-
-          contract_owner is the an ENUM specifying the type of ERC20 owner (0
-          invalid, 1 ModuleAccount, 2 external address)
+      amount:
         type: string
-        enum:
-          - OWNER_UNSPECIFIED
-          - OWNER_MODULE
-          - OWNER_EXTERNAL
-        default: OWNER_UNSPECIFIED
-        description: |-
-          Owner enumerates the ownership of a ERC20 contract.
+    description: |-
+      Coin defines a token with a denomination and an amount.
 
-           - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
-           - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
-           - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
-    description: >-
-      TokenPair defines an instance that records a pairing consisting of a
-      native
-       Cosmos Coin and an ERC20 token address.
+      NOTE: The amount field is an Int which implements the custom method
+      signatures required by gogoproto.
   evmos.vesting.v1.QueryBalancesResponse:
     type: object
     properties:

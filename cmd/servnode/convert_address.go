@@ -3,13 +3,12 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/servprotocolorg/serv/v12/constants"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/spf13/cobra"
 	"os"
 	"regexp"
 	"strings"
-
-	"github.com/cosmos/cosmos-sdk/types/bech32"
-	"github.com/servprotocolorg/serv/v12/constants"
-	"github.com/spf13/cobra"
 )
 
 // NewConvertAddressCmd creates a helper command that convert account bech32 address into hex address or vice versa
@@ -23,7 +22,7 @@ Eg:
 %s ca 0x830bb7a3c4c664e1c611d16dba1ef4067c697bd7 evmos
 The output will be:
 EVM address: 0x830bb7a3c4c664e1c611d16dba1ef4067c697bd7
-Bech32 %s: sx1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz
+Bech32 %s: evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz
 Bech32 evmos: evmos1sv9m0g7ycejwr3s369km58h5qe7xj77hvcxrms
 `, constants.ApplicationBinaryName, constants.Bech32Prefix),
 		Args: cobra.RangeArgs(1, 2),
@@ -37,9 +36,7 @@ Bech32 evmos: evmos1sv9m0g7ycejwr3s369km58h5qe7xj77hvcxrms
 			var nextConvertToBech32 string
 			if len(args) == 2 {
 				nextConvertToBech32 = strings.TrimSpace(strings.ToLower(args[1]))
-				if strings.HasSuffix(nextConvertToBech32, "1") {
-					nextConvertToBech32 = nextConvertToBech32[:len(nextConvertToBech32)-1]
-				}
+				nextConvertToBech32 = strings.TrimSuffix(nextConvertToBech32, "1")
 			}
 
 			var bytesAddress string

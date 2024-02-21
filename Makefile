@@ -352,7 +352,7 @@ benchmark:
 ###############################################################################
 
 lint:
-	golangci-lint run --out-format=tab
+	golangci-lint run --out-format=tab --exclude 'S1021:' --exclude 'S1023:'
 	solhint contracts/**/*.sol
 
 lint-contracts:
@@ -361,7 +361,7 @@ lint-contracts:
 	npm run lint
 
 lint-fix:
-	golangci-lint run --fix --out-format=tab --issues-exit-code=0
+	golangci-lint run --fix --out-format=tab --exclude 'S1021:' --exclude 'S1023:' --issues-exit-code=0
 
 lint-fix-contracts:
 	@cd contracts && \

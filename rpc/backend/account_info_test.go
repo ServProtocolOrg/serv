@@ -4,17 +4,15 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/servprotocolorg/serv/v12/rpc/backend/mocks"
+	rpctypes "github.com/servprotocolorg/serv/v12/rpc/types"
+	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
+	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"google.golang.org/grpc/metadata"
-
-	"github.com/servprotocolorg/serv/v12/rpc/backend/mocks"
-	rpctypes "github.com/servprotocolorg/serv/v12/rpc/types"
-	utiltx "github.com/servprotocolorg/serv/v12/testutil/tx"
-	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
 )
 
 func (suite *BackendTestSuite) TestGetCode() {
@@ -367,9 +365,8 @@ func (suite *BackendTestSuite) TestGetTransactionCount() {
 			false,
 			rpctypes.NewBlockNumber(big.NewInt(1)),
 			func(addr common.Address, bn rpctypes.BlockNumber) {
-				var header metadata.MD
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParams(queryClient, &header, 1)
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			true,
 			hexutil.Uint64(0),
@@ -379,15 +376,25 @@ func (suite *BackendTestSuite) TestGetTransactionCount() {
 			false,
 			rpctypes.NewBlockNumber(big.NewInt(10000)),
 			func(addr common.Address, bn rpctypes.BlockNumber) {
-				var header metadata.MD
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterParams(queryClient, &header, 1)
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			false,
 			hexutil.Uint64(0),
 		},
+		{
+			name:      "fail - indexer returns error",
+			accExists: false,
+			blockNum:  rpctypes.NewBlockNumber(big.NewInt(10000)),
+			registerMock: func(addr common.Address, bn rpctypes.BlockNumber) {
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
+			},
+			expPass:    false,
+			expTxCount: hexutil.Uint64(0),
+		},
 		// TODO: Error mocking the GetAccount call - problem with Any type
-		// {
+		//{
 		//	"pass - returns the number of transactions at the given address up to the given block number",
 		//	true,
 		//	rpctypes.NewBlockNumber(big.NewInt(1)),
@@ -395,6 +402,7 @@ func (suite *BackendTestSuite) TestGetTransactionCount() {
 		//		client := suite.backend.clientCtx.Client.(*mocks.Client)
 		//		account, err := suite.backend.clientCtx.AccountRetriever.GetAccount(suite.backend.clientCtx, suite.acc)
 		//		suite.Require().NoError(err)
+		//
 		//		request := &authtypes.QueryAccountRequest{Address: sdk.AccAddress(suite.acc.Bytes()).String()}
 		//		requestMarshal, _ := request.Marshal()
 		//		RegisterABCIQueryAccount(
@@ -403,10 +411,13 @@ func (suite *BackendTestSuite) TestGetTransactionCount() {
 		//			tmrpcclient.ABCIQueryOptions{Height: int64(1), Prove: false},
 		//			account,
 		//		)
+		//
+		//		indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+		//		RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 		//	},
 		//	true,
 		//	hexutil.Uint64(0),
-		// },
+		//},
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {

@@ -2,11 +2,10 @@ package utils
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"strconv"
 )
 
 // UpdateRegisteredGasAdjustmentFlags takes input is command, walking recursive sub-commands

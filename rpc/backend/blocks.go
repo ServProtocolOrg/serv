@@ -2,45 +2,29 @@ package backend
 
 import (
 	"fmt"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
-	"math"
-	"math/big"
-	"strconv"
-
 	rpctypes "github.com/servprotocolorg/serv/v12/rpc/types"
 	evmtypes "github.com/servprotocolorg/serv/v12/x/evm/types"
+	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
+	"math"
+	"math/big"
 )
 
-// BlockNumber returns the current block number in abci app state. Because abci
-// app state could lag behind from tendermint latest block, it's more stable for
-// the client to use the latest block number in abci app state than tendermint
-// rpc.
+// BlockNumber returns the current block number, based on indexed block state of the EVMTxIndexer.
 func (b *Backend) BlockNumber() (hexutil.Uint64, error) {
-	// do any grpc query, ignore the response and use the returned block height
-	var header metadata.MD
-	_, err := b.queryClient.Params(b.ctx, &evmtypes.QueryParamsRequest{}, grpc.Header(&header))
+	height, err := b.indexer.GetLastRequestIndexedBlock()
 	if err != nil {
-		return hexutil.Uint64(0), err
+		return 0, err
 	}
 
-	blockHeightHeader := header.Get(grpctypes.GRPCBlockHeightHeader)
-	if headerLen := len(blockHeightHeader); headerLen != 1 {
-		return 0, fmt.Errorf("unexpected '%s' gRPC header length; got %d, expected: %d", grpctypes.GRPCBlockHeightHeader, headerLen, 1)
-	}
-
-	height, err := strconv.ParseUint(blockHeightHeader[0], 10, 64)
-	if err != nil {
-		return 0, fmt.Errorf("failed to parse block height: %w", err)
+	if height < 1 {
+		return 0, fmt.Errorf("no block indexed yet")
 	}
 
 	if height > math.MaxInt64 {
@@ -370,45 +354,9 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	blockRes *tmrpctypes.ResultBlockResults,
 	fullTx bool,
 ) (map[string]interface{}, error) {
-	ethRPCTxs := []interface{}{}
+	// prepare block information
+
 	block := resBlock.Block
-
-	baseFee, err := b.BaseFee(blockRes)
-	if err != nil {
-		// handle the error for pruned node.
-		b.logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", block.Height, "error", err)
-	}
-
-	msgs := b.EthMsgsFromTendermintBlock(resBlock, blockRes)
-	for txIndex, ethMsg := range msgs {
-		if !fullTx {
-			hash := common.HexToHash(ethMsg.Hash)
-			ethRPCTxs = append(ethRPCTxs, hash)
-			continue
-		}
-
-		tx := ethMsg.AsTransaction()
-		height := uint64(block.Height) //#nosec G701 -- checked for int overflow already
-		index := uint64(txIndex)       //#nosec G701 -- checked for int overflow already
-		rpcTx, err := rpctypes.NewRPCTransaction(
-			tx,
-			common.BytesToHash(block.Hash()),
-			height,
-			index,
-			baseFee,
-			b.chainID,
-		)
-		if err != nil {
-			b.logger.Debug("NewTransactionFromData for receipt failed", "hash", tx.Hash().Hex(), "error", err.Error())
-			continue
-		}
-		ethRPCTxs = append(ethRPCTxs, rpcTx)
-	}
-
-	bloom, err := b.BlockBloom(blockRes)
-	if err != nil {
-		b.logger.Debug("failed to query BlockBloom", "height", block.Height, "error", err.Error())
-	}
 
 	req := &evmtypes.QueryValidatorAccountRequest{
 		ConsAddress: sdk.ConsAddress(block.Header.ProposerAddress).String(),
@@ -419,6 +367,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	ctx := rpctypes.ContextWithHeight(block.Height)
 	res, err := b.queryClient.ValidatorAccount(ctx, req)
 	if err != nil {
+		// TODO ES return error
 		b.logger.Debug(
 			"failed to query validator operator address",
 			"height", block.Height,
@@ -426,6 +375,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 			"error", err.Error(),
 		)
 		// use zero address as the validator operator address
+		//goland:noinspection GoRedundantConversion
 		validatorAccAddr = sdk.AccAddress(common.Address{}.Bytes())
 	} else {
 		validatorAccAddr, err = sdk.AccAddressFromBech32(res.AccountAddress)
@@ -436,27 +386,114 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 	validatorAddr := common.BytesToAddress(validatorAccAddr)
 
+	chainID, err := b.ChainID()
+	if err != nil {
+		return nil, err
+	}
+
+	// prepare gas & fee information
+
 	gasLimit, err := rpctypes.BlockMaxGasFromConsensusParams(ctx, b.clientCtx, block.Height)
 	if err != nil {
+		// TODO ES return error
 		b.logger.Error("failed to query consensus params", "error", err.Error())
 	}
 
-	gasUsed := uint64(0)
+	var gasUsed uint64
+	var gasUsedByTxs []uint64
+	for _, txResult := range blockRes.TxsResults {
+		gasUsedByTx := uint64(txResult.GetGasUsed()) // #nosec G701 -- checked for int overflow already
 
-	for _, txsResult := range blockRes.TxsResults {
 		// workaround for cosmos-sdk bug. https://github.com/cosmos/cosmos-sdk/issues/10832
-		if ShouldIgnoreGasUsed(txsResult) {
+		if ShouldIgnoreGasUsed(txResult) {
 			// block gas limit has exceeded, other txs must have failed with same reason.
-			break
+			gasUsedByTx = 0
 		}
-		gasUsed += uint64(txsResult.GetGasUsed()) // #nosec G701 -- checked for int overflow already
+
+		gasUsed += gasUsedByTx
+		gasUsedByTxs = append(gasUsedByTxs, gasUsedByTx)
 	}
 
+	baseFee, err := b.BaseFee(blockRes)
+	if err != nil {
+		// TODO ES return error
+		// handle the error for pruned node.
+		b.logger.Error("failed to fetch Base Fee from pruned block. Check node pruning configuration", "height", block.Height, "error", err)
+	}
+
+	// prepare txs information
+
+	ethMsgs := b.EthMsgsFromTendermintBlock(resBlock, blockRes)
+
+	var transactions ethtypes.Transactions
+	var receipts ethtypes.Receipts
+	for transactionIndex, ethMsg := range ethMsgs {
+		transaction := ethMsg.AsTransaction()
+
+		transactions = append(transactions, transaction)
+
+		indexedTxByHash, err := b.GetTxByEthHash(transaction.Hash())
+		if err != nil {
+			return nil, err
+		}
+
+		var cumulativeGasUsed uint64
+		for _, gasUsedByTx := range gasUsedByTxs[0:indexedTxByHash.TxIndex] { // previous txs
+			cumulativeGasUsed += gasUsedByTx
+		}
+		cumulativeGasUsed += indexedTxByHash.CumulativeGasUsed
+
+		logs, err := TxLogsFromEvents(blockRes.TxsResults[indexedTxByHash.TxIndex].Events, int(indexedTxByHash.MsgIndex))
+		if err != nil {
+			// TODO ES return error
+			b.logger.Debug("failed to parse logs", "hash", transaction.Hash().Hex(), "error", err.Error())
+		}
+
+		txData, err := evmtypes.UnpackTxData(ethMsg.Data)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to unpack tx data")
+		}
+
+		receipt, err := rpctypes.NewRPCReceipt(
+			ethMsg,
+			hexutil.Uint64(transactionIndex),
+			!indexedTxByHash.Failed,
+			hexutil.Uint64(b.GetGasUsed(indexedTxByHash, txData.GetGasPrice(), txData.GetGas())),
+			hexutil.Uint64(cumulativeGasUsed),
+			baseFee,
+			logs,
+			common.BytesToHash(resBlock.BlockID.Hash.Bytes()),
+			hexutil.Uint64(indexedTxByHash.Height),
+			chainID.ToInt(),
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create transaction receipt")
+		}
+		receipts = append(receipts, receipt.AsEthReceipt())
+	}
+
+	// prepare block-bloom information
+
+	bloom, err := b.BlockBloom(blockRes)
+	if err != nil {
+		// TODO ES return error
+		b.logger.Debug("failed to query BlockBloom", "height", block.Height, "error", err.Error())
+	}
+
+	// finalize
+
 	formattedBlock := rpctypes.FormatBlock(
-		block.Header, block.Size(),
-		gasLimit, new(big.Int).SetUint64(gasUsed),
-		ethRPCTxs, bloom, validatorAddr, baseFee,
+		block.Header,
+		b.chainID,
+		block.Size(),
+		gasLimit, new(big.Int).SetUint64(gasUsed), baseFee,
+		transactions, fullTx,
+		receipts,
+		bloom,
+		validatorAddr,
+		b.logger,
 	)
+
 	return formattedBlock, nil
 }
 

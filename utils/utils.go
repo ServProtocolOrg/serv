@@ -2,6 +2,7 @@ package utils
 
 import (
 	"github.com/servprotocolorg/serv/v12/constants"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"strings"
 
 	"github.com/servprotocolorg/serv/v12/crypto/ethsecp256k1"
@@ -78,4 +79,8 @@ func GetServAddressFromBech32(address string) (sdk.AccAddress, error) {
 	}
 
 	return sdk.AccAddress(addressBz), nil
+}
+
+func UseZeroGasConfig(ctx sdk.Context) sdk.Context {
+	return ctx.WithKVGasConfig(storetypes.GasConfig{}).WithTransientKVGasConfig(storetypes.GasConfig{})
 }

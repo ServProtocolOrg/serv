@@ -204,7 +204,7 @@ func createPopulatedTestCase(t *testing.T) TestCaseStruct {
 
 	msgSend := banktypes.MsgSend{
 		FromAddress: feePayerAddress,
-		ToAddress:   "sx1z6e8ee2pl0squhjygtpw8td0sm8z6kunaaaaaa",
+		ToAddress:   "sx14tvzdwl9cmlfxvl3l4pvxrdz7e58ry4yaaaaaa",
 		Amount: sdk.NewCoins(
 			sdk.NewCoin(
 				constants.BaseDenom,

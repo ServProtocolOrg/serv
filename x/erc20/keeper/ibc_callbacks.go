@@ -2,8 +2,8 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	"github.com/servprotocolorg/serv/v12/utils"
 	"github.com/armon/go-metrics"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -43,9 +43,7 @@ func (k Keeper) OnRecvPacket(
 	}
 
 	// use a zero gas config to avoid extra costs for the relayers
-	ctx = ctx.
-		WithKVGasConfig(storetypes.GasConfig{}).
-		WithTransientKVGasConfig(storetypes.GasConfig{})
+	ctx = utils.UseZeroGasConfig(ctx)
 
 	if !k.IsERC20Enabled(ctx) {
 		return ack
@@ -56,13 +54,17 @@ func (k Keeper) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	claimsParams := k.claimsKeeper.GetParams(ctx)
+	/*
+		This is a special case where the sender and recipient are the same
+		that can fall into the problem identified in ticket #79.
 
-	// if sender == recipient, and is not from an EVM Channel recovery was executed
-	if sender.Equals(recipient) && !claimsParams.IsEVMChannel(packet.DestinationChannel) {
-		// Continue to the next IBC middleware by returning the original ACK.
-		return ack
-	}
+		At this time, we decided to keep conversion.
+		However, we should implement another method to helps user take their funds back.
+
+		if sender.Equals(recipient) && !IsEVMChannel(packet.DestinationChannel) {
+			return ack
+		}
+	*/
 
 	senderAcc := k.accountKeeper.GetAccount(ctx, sender)
 
@@ -162,9 +164,7 @@ func (k Keeper) ConvertCoinToERC20FromPacket(ctx sdk.Context, data transfertypes
 	}
 
 	// use a zero gas config to avoid extra costs for the relayers
-	ctx = ctx.
-		WithKVGasConfig(storetypes.GasConfig{}).
-		WithTransientKVGasConfig(storetypes.GasConfig{})
+	ctx = utils.UseZeroGasConfig(ctx)
 
 	// assume that all module accounts on this chain need to have their tokens in the
 	// IBC representation as opposed to ERC20

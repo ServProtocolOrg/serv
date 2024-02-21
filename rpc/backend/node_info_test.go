@@ -14,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/spf13/viper"
-	"google.golang.org/grpc/metadata"
 )
 
 func (suite *BackendTestSuite) TestRPCMinGasPrice() {
@@ -249,12 +248,14 @@ func (suite *BackendTestSuite) TestSetEtherbase() {
 		{
 			"fail - error querying for account",
 			func() {
-				var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterStatus(client)
 				RegisterValidatorAccount(queryClient, suite.acc)
-				RegisterParams(queryClient, &header, 1)
+
+				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
+				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
+
 				c := sdk.NewDecCoin(constants.BaseDenom, sdk.NewIntFromBigInt(big.NewInt(1)))
 				suite.backend.cfg.SetMinGasPrices(sdk.DecCoins{c})
 				delAddr, _ := suite.backend.GetCoinbase()

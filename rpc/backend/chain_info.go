@@ -147,8 +147,8 @@ func (b *Backend) GetCoinbase() (sdk.AccAddress, error) {
 // FeeHistory returns data relevant for fee estimation based on the specified range of blocks.
 func (b *Backend) FeeHistory(
 	userBlockCount rpc.DecimalOrHex, // number blocks to fetch, maximum is 100
-	lastBlock rpc.BlockNumber, // the block to start search , to oldest
-	rewardPercentiles []float64, // percentiles to fetch reward
+	lastBlock rpc.BlockNumber,       // the block to start search , to oldest
+	rewardPercentiles []float64,     // percentiles to fetch reward
 ) (*rpctypes.FeeHistoryResult, error) {
 	blockEnd := int64(lastBlock) //#nosec G701 -- checked for int overflow already
 

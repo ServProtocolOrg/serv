@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - (store) [#12](https://github.com/EscanBE/evermint/pull/12) Add local `snapshots` management commands
 - (store) [#14](https://github.com/EscanBE/evermint/pull/14) Add `inspect` command and sub-commands
+- (test+rpc) [#74](https://github.com/EscanBE/evermint/pull/74) Add integration test util + add IT skeleton for Json-RPC
 
 ### Improvement
 
@@ -49,6 +50,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (fee) [#37](https://github.com/EscanBE/evermint/pull/37) Reject cosmos txs that fee denom is not evm denom
 - (test) [#46](https://github.com/EscanBE/evermint/pull/46) Use static mnemonic for scripts init nodes and `evmd testnet init-files`
 - (ante) [#64](https://github.com/EscanBE/evermint/pull/64) Add EvmTx sender override protection in ante and correct changelog
+- (lint) [#83](https://github.com/EscanBE/evermint/pull/83) Update lint rules and fix lint issues
+- (cleanup) [#92](https://github.com/EscanBE/evermint/pull/92) Cleanup un-used `x/evm` and `x/erc20` types
+- (indexer) [#96](https://github.com/EscanBE/evermint/pull/96) Make EVMTxIndexer mandatory service, starts before Json-RPC
+- (test) [#100](https://github.com/EscanBE/evermint/pull/100) Add some edge test cases + benchmark tests
+- (evm) [#103](https://github.com/EscanBE/evermint/pull/103) General use zero gas config for EVM exec
 
 ### Bug Fixes
 
@@ -60,6 +66,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (test) [#50](https://github.com/EscanBE/evermint/pull/50) Set chain-id into client.toml during init testnet
 - (ante) [#59](https://github.com/EscanBE/evermint/pull/59) Prevent panic when building error message of fee which overflow int64
 - (swagger) [#66](https://github.com/EscanBE/evermint/pull/66) Correct script gen swagger after switched to use vanilla Cosmos-SDK
+- (rename-chain) [#80](https://github.com/EscanBE/evermint/pull/80) Handle new cases of rename-chain with recent changes
+- (rpc) [#85](https://github.com/EscanBE/evermint/pull/85) Compute and return correct `transactionsRoot` and `receiptsRoot` hashes
 
 ### Client Breaking
 
@@ -79,10 +87,37 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (revenue) [#68](https://github.com/EscanBE/evermint/pull/68) Remove `x/revenue` module
 - (recovery) [#69](https://github.com/EscanBE/evermint/pull/69) Remove `x/recovery` module
 - (epochs) [#70](https://github.com/EscanBE/evermint/pull/70) Remove `x/epochs` module
+- (claims) [#73](https://github.com/EscanBE/evermint/pull/73) Remove `x/claims` module
+- (evm) [#76](https://github.com/EscanBE/evermint/pull/76) Fix wrong Ethereum Tx type when convert to `MsgEthereumTx`
+- (deps) [#106](https://github.com/EscanBE/evermint/pull/106) Bump cosmos-sdk v0.47.8 and ibc v7.3.2
 
 # Evermint changelog
 
-#### Note: Evermint was born for development and research purpose so maintainers do not support migration for new upgrade/breaking changes. 
+#### Note: Evermint was born for development and research purpose so maintainers do not support migration for new upgrade/breaking changes.
+
+## [v12.2.4] - 2024-01-31
+
+### Improvements
+
+- (rename-chain) [#81](https://github.com/EscanBE/evermint/pull/81) Sync new changes of function `rename-chain` from `main` branch
+- (indexer) [#98](https://github.com/EscanBE/evermint/pull/98) Skip pruned blocks & drop multiple failed-to-index blocks during indexer boot-up process (cherry-pick partially #96)
+- (evm) [#104](https://github.com/EscanBE/evermint/pull/104) General use zero gas config for EVM exec (backport #103)
+
+## [v12.2.3] - 2024-01-12
+
+### Improvements
+
+- (test) [#51](https://github.com/EscanBE/evermint/pull/51) Set chain-id into client.toml during init testnet
+- (ante) [#65](https://github.com/EscanBE/evermint/pull/65) Add EvmTx sender override protection in ante and correct changelog (backport #64)
+
+### Bug Fixes
+
+- (ante) [#60](https://github.com/EscanBE/evermint/pull/60) Prevent panic when building error message of fee which overflow int64 (backport #59)
+
+### State Machine Breaking
+
+- (ante) [#63](https://github.com/EscanBE/evermint/pull/63) Disable more authz msgs + refactor optimize AuthzLimiterDecorator (backport #62)
+- (evm) [#77](https://github.com/EscanBE/evermint/pull/77) Fix wrong Ethereum Tx type when convert to `MsgEthereumTx` (backport #76)
 
 ## [v12.2.2] - 2024-01-03
 
