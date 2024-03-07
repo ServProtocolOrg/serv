@@ -21,13 +21,16 @@ jobs:
         run: |
           export GOOS=${{ matrix.goos }}
           export GOARCH=${{ matrix.goarch }}
-          go build -v -o servnode-${{ matrix.goos }}-${{ matrix.goarch }} ./...
+          for dir in $(go list -f '{{.Dir}}' ./...); do
+            pkg=$(basename $dir)
+            go build -v -o ${pkg}-${{ matrix.goos }}-${{ matrix.goarch }} $dir
+          done
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
         with:
           name: servnode-${{ matrix.goos }}-${{ matrix.goarch }}
           path: ./servnode-${{ matrix.goos }}-${{ matrix.goarch }}
-
+          
   release:
     needs: build
     runs-on: ubuntu-latest
