@@ -16,35 +16,47 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64, 386]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
         with:
           go-version: '1.20'
-          check-latest: true
-      - uses: technote-space/get-diff-action@v6.1.2
-        id: git_diff
+      - name: Build
+        run: |
+          export GOOS=${{ matrix.goos }}
+          export GOARCH=${{ matrix.goarch }}
+          go build -v -o servnode-${{ matrix.goos }}-${{ matrix.goarch }} ./...
+      - uses: actions/upload-artifact@v2
         with:
-          PATTERNS: |
-            **/**.go
-            go.mod
-            go.sum
-            *.toml
-      - run: |
-          make build
-        if: env.GIT_DIFF
+          name: servnode-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: ./servnode-${{ matrix.goos }}-${{ matrix.goarch }}
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.SERV_BUILD_KEY }} # This token is provided by Actions, you do not need to create your own token
+          GITHUB_TOKEN: ${{ secrets.SERV_BUILD_KEY }}
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
+      - name: Attach Artifacts to Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.SERV_BUILD_KEY }}
+          file: servnode-*
+          asset_name: servnode-${{ github.ref }}-${{ matrix.goos }}-${{ matrix.goarch }}
+          tag: ${{ github.ref }}
+          overwrite: true
