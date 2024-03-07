@@ -3,67 +3,29 @@ name: Build and Release
 on:
   push:
     tags:
-      - '*'
-
+      - 'v*'
+      
 jobs:
-  build:
-    strategy:
-      matrix:
-        goos: [windows, linux, darwin]
-        goarch: [amd64, arm64]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.20'
-      - name: Build
-        run: |
-          export GOOS=${{ matrix.goos }}
-          export GOARCH=${{ matrix.goarch }}
-          for dir in $(go list -f '{{.Dir}}' ./...); do
-            pkg=$(basename $dir)
-            go build -v -o ${pkg}-${{ matrix.goos }}-${{ matrix.goarch }} $dir
-          done
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: servnode-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: ./servnode-${{ matrix.goos }}-${{ matrix.goarch }}
-          
   release:
-    needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-      - name: Install zip
-        run: sudo apt-get install zip
-      - name: Zip Artifacts
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v1
+
+      - name: Run GoReleaser
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for file in $(ls); do
-            if [[ -f $file ]]; then
-              zip ${file%.*}.zip $file
-            fi
-          done
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.SERV_BUILD_KEY }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-      - name: Upload Release Asset
-        id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.SERV_BUILD_KEY }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./*.zip
-          asset_name: servnode-${{ matrix.goos }}-${{ matrix.goarch }}.zip
-          asset_content_type: application/zip
+          docker run \
+            --rm \
+            --privileged \
+            -e CGO_ENABLED=1 \
+            -e GITHUB_TOKEN \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v ${{ github.workspace }}:/go/src/github.com/servprotocolorg/serv \
+            -w /go/src/github.com/servprotocolorg/serv \
+            ghcr.io/goreleaser/goreleaser-cross:v1.20 \
+            release --rm-dist
